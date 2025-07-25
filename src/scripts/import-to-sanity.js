@@ -61,8 +61,8 @@ const categoryMapping = {
   'interior': 'interior'
 };
 
-const inferCategory = (title, content) => {
-  const text = `${title} ${content}`.toLowerCase();
+const inferCategory = (title, content, categories = []) => {
+  const text = `${title} ${content} ${categories.join(' ')}`.toLowerCase();
   
   // Check for keywords to infer category
   if (text.includes('pottery') || text.includes('ceramic')) return 'pottery';
@@ -76,8 +76,8 @@ const inferCategory = (title, content) => {
   return 'objects'; // Default category
 };
 
-// Create Sanity document
-const createSanityDocument = (article) => {
+// Create Sanity document from migration data
+const createSanityDocumentFromMigration = (article) => {
   const doc = {
     _type: 'article',
     title: article.title,
@@ -88,7 +88,7 @@ const createSanityDocument = (article) => {
     publishedAt: parseDate(article.date),
     excerpt: createExcerpt(article.content),
     category: inferCategory(article.title, article.content),
-    author: 'Russell Concept House',
+    author: article.author || 'Russell Concept House',
     
     // For now, store content as plain text in a temporary field
     // We'll update this to proper block content later
@@ -96,14 +96,105 @@ const createSanityDocument = (article) => {
     
     // Store migration metadata
     _migrationData: {
+      source: 'backup',
       sourceFile: article.sourceFile,
       originalDate: article.date,
       imageCount: article.images ? article.images.length : 0,
-      migrated: true
+      migrated: true,
+      processedImages: article.processedImages || []
     }
   };
   
   return doc;
+};
+
+// Create Sanity document from RSS data
+const createSanityDocumentFromRSS = (post) => {
+  const doc = {
+    _type: 'article',
+    title: post.title,
+    slug: {
+      _type: 'slug',
+      current: post.slug
+    },
+    publishedAt: parseDate(post.publishedAt || post.date),
+    excerpt: post.excerpt || createExcerpt(post.content),
+    category: inferCategory(post.title, post.content, post.categories),
+    author: post.author || 'Russell Concept House',
+    
+    // Store additional RSS data
+    _tempContent: post.content,
+    _rssLink: post.link,
+    _rssGuid: post.guid,
+    
+    // Store migration metadata
+    _migrationData: {
+      source: 'rss',
+      originalDate: post.date,
+      publishedAt: post.publishedAt,
+      imageCount: post.images ? post.images.length : 0,
+      migrated: true,
+      categories: post.categories || [],
+      processedImages: post.processedImages || []
+    }
+  };
+  
+  return doc;
+};
+
+// Load all data sources
+const loadAllPosts = async () => {
+  const allPosts = new Map(); // Use slug as key to avoid duplicates
+  let sources = [];
+  
+  // Try to load RSS data (111 posts)
+  try {
+    const rssDataPath = path.join(process.cwd(), 'src/data/wix-all-posts.json');
+    const rssData = JSON.parse(await fs.readFile(rssDataPath, 'utf-8'));
+    
+    console.log(`📡 Loaded ${rssData.posts.length} posts from RSS feed`);
+    sources.push(`RSS (${rssData.posts.length} posts)`);
+    
+    // Add RSS posts (these are preferred)
+    rssData.posts.forEach(post => {
+      allPosts.set(post.slug, {
+        ...post,
+        _source: 'rss'
+      });
+    });
+  } catch (error) {
+    console.log('⚠️  RSS data not found, skipping...');
+  }
+  
+  // Try to load migration data (33 posts)
+  try {
+    const migrationDataPath = path.join(process.cwd(), 'src/data/wix-migration.json');
+    const migrationData = JSON.parse(await fs.readFile(migrationDataPath, 'utf-8'));
+    
+    console.log(`📁 Loaded ${migrationData.articles.length} posts from backup`);
+    sources.push(`Backup (${migrationData.articles.length} posts)`);
+    
+    // Add migration posts (only if not already present from RSS)
+    migrationData.articles.forEach(article => {
+      if (!allPosts.has(article.slug)) {
+        allPosts.set(article.slug, {
+          ...article,
+          _source: 'migration'
+        });
+      }
+    });
+  } catch (error) {
+    console.log('⚠️  Migration data not found, skipping...');
+  }
+  
+  if (allPosts.size === 0) {
+    throw new Error('No posts found in either data source!');
+  }
+  
+  console.log(`\n📊 Total unique posts to import: ${allPosts.size}`);
+  console.log(`   Sources: ${sources.join(', ')}\n`);
+  
+  return Array.from(allPosts.values());
 };
 
 // Import articles to Sanity
@@ -120,39 +211,45 @@ const importToSanity = async () => {
   }
   
   try {
-    // Read migration data
-    const migrationDataPath = path.join(process.cwd(), 'src/data/wix-migration.json');
-    const migrationData = JSON.parse(await fs.readFile(migrationDataPath, 'utf-8'));
-    
-    console.log(`📁 Found ${migrationData.articles.length} articles to import\n`);
+    // Load all posts from both sources
+    const allPosts = await loadAllPosts();
     
     const results = {
       successful: 0,
       failed: 0,
       skipped: 0,
+      bySource: {
+        rss: { successful: 0, failed: 0, skipped: 0 },
+        migration: { successful: 0, failed: 0, skipped: 0 }
+      },
       errors: []
     };
     
-    // Process each article
-    for (let i = 0; i < migrationData.articles.length; i++) {
-      const article = migrationData.articles[i];
-      console.log(`\n📄 Processing article ${i + 1}/${migrationData.articles.length}`);
-      console.log(`   Title: ${article.title}`);
-      console.log(`   Slug: ${article.slug}`);
+    // Process each post
+    for (let i = 0; i < allPosts.length; i++) {
+      const post = allPosts[i];
+      const source = post._source;
+      
+      console.log(`\n📄 Processing post ${i + 1}/${allPosts.length} [${source.toUpperCase()}]`);
+      console.log(`   Title: ${post.title}`);
+      console.log(`   Slug: ${post.slug}`);
       
       try {
         // Check if article already exists
         const existingQuery = `*[_type == "article" && slug.current == $slug][0]`;
-        const existing = await client.fetch(existingQuery, { slug: article.slug });
+        const existing = await client.fetch(existingQuery, { slug: post.slug });
         
         if (existing) {
           console.log(`   ⚠️  Article already exists, skipping...`);
           results.skipped++;
+          results.bySource[source].skipped++;
           continue;
         }
         
-        // Create Sanity document
-        const doc = createSanityDocument(article);
+        // Create Sanity document based on source
+        const doc = source === 'rss' 
+          ? createSanityDocumentFromRSS(post)
+          : createSanityDocumentFromMigration(post);
         
         // Create the document
         console.log(`   📝 Creating document...`);
@@ -160,12 +257,15 @@ const importToSanity = async () => {
         
         console.log(`   ✅ Successfully created with ID: ${created._id}`);
         results.successful++;
+        results.bySource[source].successful++;
         
       } catch (error) {
         console.error(`   ❌ Error: ${error.message}`);
         results.failed++;
+        results.bySource[source].failed++;
         results.errors.push({
-          article: article.title,
+          post: post.title,
+          source,
           error: error.message
         });
       }
@@ -178,12 +278,17 @@ const importToSanity = async () => {
     console.log(`✅ Successfully imported: ${results.successful}`);
     console.log(`⚠️  Skipped (already exist): ${results.skipped}`);
     console.log(`❌ Failed: ${results.failed}`);
-    console.log(`\nTotal processed: ${migrationData.articles.length}`);
+    console.log(`\nTotal processed: ${allPosts.length}`);
+    
+    // Show breakdown by source
+    console.log('\n📈 Breakdown by source:');
+    console.log(`   RSS Feed: ${results.bySource.rss.successful} imported, ${results.bySource.rss.skipped} skipped, ${results.bySource.rss.failed} failed`);
+    console.log(`   Backup: ${results.bySource.migration.successful} imported, ${results.bySource.migration.skipped} skipped, ${results.bySource.migration.failed} failed`);
     
     if (results.errors.length > 0) {
       console.log('\n⚠️  Errors encountered:');
       results.errors.forEach(err => {
-        console.log(`   - ${err.article}: ${err.error}`);
+        console.log(`   - [${err.source}] ${err.post}: ${err.error}`);
       });
     }
     
