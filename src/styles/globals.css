@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-white text-neutral-900;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+  
+  ::selection {
+    @apply bg-neutral-900 text-white;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-6 lg:px-8;
+  }
+  
+  .nav-link {
+    @apply text-sm font-light tracking-wide text-neutral-700 hover:text-neutral-900 transition-colors duration-200;
+  }
+  
+  .button-primary {
+    @apply inline-block px-8 py-3 bg-neutral-900 text-white text-sm tracking-wider hover:bg-neutral-800 transition-colors duration-200;
+  }
+  
+  .button-secondary {
+    @apply inline-block px-8 py-3 border border-neutral-300 text-neutral-700 text-sm tracking-wider hover:border-neutral-900 hover:text-neutral-900 transition-colors duration-200;
+  }
+}
