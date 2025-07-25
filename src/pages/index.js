@@ -3,9 +3,54 @@ import Link from 'next/link'
 
 export default function Home() {
   const featuredArticles = [
-    { id: 1, title: 'The Art of Minimalist Living', category: 'Lifestyle', image: '/api/placeholder/400/500' },
-    { id: 2, title: 'Sustainable Design Practices', category: 'Design', image: '/api/placeholder/400/500' },
-    { id: 3, title: 'Curating Your Personal Space', category: 'Interior', image: '/api/placeholder/400/500' },
+    { 
+      id: 1, 
+      title: 'Lighting by Olivia Bossy', 
+      category: 'Design', 
+      aspectRatio: '3/4',
+      height: '450px',
+      gradient: 'from-silver to-dim-gray'
+    },
+    { 
+      id: 2, 
+      title: 'Opal Beer Glass', 
+      category: 'Objects', 
+      aspectRatio: '1/1',
+      height: '300px',
+      gradient: 'from-platinum to-silver'
+    },
+    { 
+      id: 3, 
+      title: 'Pewter Collection', 
+      category: 'Crafts', 
+      aspectRatio: '4/3',
+      height: '350px',
+      gradient: 'from-dim-gray to-black-olive'
+    },
+    { 
+      id: 4, 
+      title: 'Porcelain Branches', 
+      category: 'Art', 
+      aspectRatio: '3/4',
+      height: '400px',
+      gradient: 'from-seasalt to-platinum'
+    },
+    { 
+      id: 5, 
+      title: 'Ceramic Studies', 
+      category: 'Pottery', 
+      aspectRatio: '1/1',
+      height: '320px',
+      gradient: 'from-silver to-platinum'
+    },
+    { 
+      id: 6, 
+      title: 'Woven Textiles', 
+      category: 'Textiles', 
+      aspectRatio: '4/3',
+      height: '300px',
+      gradient: 'from-platinum to-dim-gray'
+    }
   ]
   
   const featuredProducts = [
@@ -57,14 +102,30 @@ export default function Home() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredArticles.map((article) => (
-              <article key={article.id} className="group cursor-pointer">
-                <div className="aspect-[4/5] bg-platinum mb-4 overflow-hidden">
-                  <div className="w-full h-full bg-silver group-hover:scale-105 transition-transform duration-700"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[50px]">
+            {featuredArticles.map((article, index) => (
+              <article 
+                key={article.id} 
+                className={`group cursor-pointer animate-fadeIn opacity-0`}
+                style={{
+                  gridRowEnd: `span ${Math.ceil(parseInt(article.height) / 50) + 2}`,
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'forwards'
+                }}
+              >
+                <div 
+                  className="relative overflow-hidden mb-4 rounded-sm"
+                  style={{ height: article.height }}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${article.gradient} opacity-90 group-hover:opacity-80 transition-opacity duration-700`}></div>
+                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
+                  <div className="absolute bottom-0 left-0 p-6 text-seasalt opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-xs tracking-widest mb-2">{article.category.toUpperCase()}</p>
+                    <h3 className="text-2xl font-serif">{article.title}</h3>
+                  </div>
                 </div>
                 <p className="text-xs tracking-widest text-dim-gray mb-2">{article.category.toUpperCase()}</p>
-                <h3 className="text-xl font-serif group-hover:underline">{article.title}</h3>
+                <h3 className="text-lg font-serif group-hover:underline">{article.title}</h3>
               </article>
             ))}
           </div>
