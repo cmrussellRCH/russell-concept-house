@@ -40,8 +40,11 @@ export default {
     {
       name: 'mainImage',
       title: 'Main Image',
-      type: 'cloudinary.asset',
+      type: 'image',
       description: 'The main hero image for the article',
+      options: {
+        hotspot: true
+      },
       validation: Rule => Rule.required()
     },
     {
@@ -98,8 +101,11 @@ export default {
           }
         },
         {
-          type: 'cloudinary.asset',
-          title: 'Image'
+          type: 'image',
+          title: 'Image',
+          options: {
+            hotspot: true
+          }
         }
       ]
     },
@@ -109,7 +115,10 @@ export default {
       type: 'array',
       of: [
         {
-          type: 'cloudinary.asset'
+          type: 'image',
+          options: {
+            hotspot: true
+          }
         }
       ],
       description: 'Additional images for the article'
@@ -128,7 +137,7 @@ export default {
     select: {
       title: 'title',
       author: 'author',
-      media: 'mainImage.secure_url'
+      media: 'mainImage'
     },
     prepare(selection) {
       const { author } = selection

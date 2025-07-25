@@ -15,11 +15,7 @@ export default defineConfig({
     structureTool(),
     visionTool(),
     cloudinaryAssetSourcePlugin({
-      cloudName: process.env.SANITY_STUDIO_CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.SANITY_STUDIO_CLOUDINARY_API_KEY,
-      apiSecret: process.env.SANITY_STUDIO_CLOUDINARY_API_SECRET,
-      username: process.env.SANITY_STUDIO_CLOUDINARY_USERNAME,
-      password: process.env.SANITY_STUDIO_CLOUDINARY_PASSWORD,
+      cloudName: process.env.SANITY_STUDIO_CLOUDINARY_CLOUD_NAME || 'your-cloud-name',
     })
   ],
 
