@@ -1,185 +1,232 @@
 import Head from 'next/head'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
-  const featuredArticles = [
-    { 
-      id: 1, 
-      title: 'Lighting by Olivia Bossy', 
-      category: 'Design', 
-      aspectRatio: '3/4',
-      height: '450px',
-      gradient: 'from-silver to-dim-gray'
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const galleryItems = [
+    // Row 1: 1 tall + 2 stacked squares
+    {
+      id: 1,
+      title: 'Lighting by Olivia Bossy',
+      type: 'tall',
+      gradient: 'from-zinc-900 to-zinc-700',
+      row: 1,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[600px] lg:h-[800px]'
     },
-    { 
-      id: 2, 
-      title: 'Opal Beer Glass', 
-      category: 'Objects', 
-      aspectRatio: '1/1',
-      height: '300px',
-      gradient: 'from-platinum to-silver'
+    {
+      id: 2,
+      title: 'Opal Beer Glass',
+      type: 'square',
+      gradient: 'from-stone-800 to-amber-900',
+      row: 1,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[295px] lg:h-[395px]'
     },
-    { 
-      id: 3, 
-      title: 'Pewter Collection', 
-      category: 'Crafts', 
-      aspectRatio: '4/3',
-      height: '350px',
-      gradient: 'from-dim-gray to-black-olive'
+    {
+      id: 3,
+      title: 'Pewter Collection',
+      type: 'square',
+      gradient: 'from-gray-400 to-gray-100',
+      row: 1,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[295px] lg:h-[395px]'
     },
-    { 
-      id: 4, 
-      title: 'Porcelain Branches', 
-      category: 'Art', 
-      aspectRatio: '3/4',
-      height: '400px',
-      gradient: 'from-seasalt to-platinum'
+    // Row 2: 2 medium side by side
+    {
+      id: 4,
+      title: 'Porcelain Branches',
+      type: 'medium',
+      gradient: 'from-emerald-900 to-emerald-700',
+      row: 2,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[400px] lg:h-[500px]'
     },
-    { 
-      id: 5, 
-      title: 'Ceramic Studies', 
-      category: 'Pottery', 
-      aspectRatio: '1/1',
-      height: '320px',
-      gradient: 'from-silver to-platinum'
+    {
+      id: 5,
+      title: 'Ceramic Studies',
+      type: 'medium',
+      gradient: 'from-neutral-900 to-neutral-600',
+      row: 2,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[400px] lg:h-[500px]'
     },
-    { 
-      id: 6, 
-      title: 'Woven Textiles', 
-      category: 'Textiles', 
-      aspectRatio: '4/3',
-      height: '300px',
-      gradient: 'from-platinum to-dim-gray'
+    // Row 3: 1 wide panoramic
+    {
+      id: 6,
+      title: 'Woven Textiles',
+      type: 'wide',
+      gradient: 'from-amber-800 to-yellow-600',
+      row: 3,
+      col: 'col-span-6',
+      height: 'h-[300px] lg:h-[400px]'
+    },
+    // Row 4: 3 smaller images
+    {
+      id: 7,
+      title: 'Glass Forms',
+      type: 'small',
+      gradient: 'from-slate-800 to-slate-600',
+      row: 4,
+      col: 'col-span-6 lg:col-span-2',
+      height: 'h-[280px] lg:h-[350px]'
+    },
+    {
+      id: 8,
+      title: 'Bronze Vessels',
+      type: 'small',
+      gradient: 'from-orange-900 to-amber-700',
+      row: 4,
+      col: 'col-span-6 lg:col-span-2',
+      height: 'h-[280px] lg:h-[350px]'
+    },
+    {
+      id: 9,
+      title: 'Stone Sculptures',
+      type: 'small',
+      gradient: 'from-gray-900 to-gray-700',
+      row: 4,
+      col: 'col-span-6 lg:col-span-2',
+      height: 'h-[280px] lg:h-[350px]'
+    },
+    // Pattern repeats
+    {
+      id: 10,
+      title: 'Indigo Dyes',
+      type: 'tall',
+      gradient: 'from-indigo-950 to-indigo-800',
+      row: 5,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[600px] lg:h-[800px]'
+    },
+    {
+      id: 11,
+      title: 'Wood Carvings',
+      type: 'square',
+      gradient: 'from-orange-950 to-orange-800',
+      row: 5,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[295px] lg:h-[395px]'
+    },
+    {
+      id: 12,
+      title: 'Metal Works',
+      type: 'square',
+      gradient: 'from-zinc-700 to-zinc-500',
+      row: 5,
+      col: 'col-span-6 lg:col-span-3',
+      height: 'h-[295px] lg:h-[395px]'
     }
   ]
-  
-  const featuredProducts = [
-    { id: 1, name: 'Ceramic Vase Collection', price: '$120', image: '/api/placeholder/400/400' },
-    { id: 2, name: 'Handwoven Throw Blanket', price: '$85', image: '/api/placeholder/400/400' },
-    { id: 3, name: 'Minimalist Wall Art', price: '$200', image: '/api/placeholder/400/400' },
-    { id: 4, name: 'Oak Wood Side Table', price: '$450', image: '/api/placeholder/400/400' },
-  ]
-  
+
   return (
     <>
       <Head>
-        <title>Russell Concept House - Curated Design & Lifestyle</title>
-        <meta name="description" content="Discover thoughtfully curated design pieces and lifestyle articles at Russell Concept House" />
+        <title>Russell Concept House</title>
+        <meta name="description" content="Contemporary design and artisanal objects" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      
-      {/* Hero Section */}
-      <section className="relative h-[70vh] flex items-center justify-center bg-platinum">
-        <div className="container-custom text-center">
-          <h1 className="text-5xl md:text-7xl font-serif font-light tracking-tight mb-6">
-            Thoughtfully Curated
-          </h1>
-          <p className="text-lg md:text-xl text-dim-gray font-light max-w-2xl mx-auto mb-10">
-            Discover a collection of design pieces and lifestyle articles that inspire mindful living and timeless aesthetics
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/shop" className="button-primary">
-              Explore Collection
-            </Link>
-            <Link href="/articles" className="button-secondary">
-              Read Articles
-            </Link>
-          </div>
-        </div>
-      </section>
-      
-      {/* Featured Articles */}
-      <section className="py-24">
-        <div className="container-custom">
-          <div className="flex justify-between items-end mb-12">
-            <div>
-              <h2 className="text-4xl font-serif font-light mb-2">Featured Articles</h2>
-              <p className="text-dim-gray">Insights on design, lifestyle, and mindful living</p>
+
+      {/* Full-screen gallery grid */}
+      <div className="min-h-screen">
+        <div className="grid grid-cols-6 gap-1 lg:gap-0.5">
+          {/* Row 1: 1 tall image + 2 stacked squares */}
+          <div className="col-span-6 lg:col-span-3 h-[600px] lg:h-[800px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-700 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Lighting by Olivia Bossy</h3>
             </div>
-            <Link href="/articles" className="text-sm tracking-wider hover:underline">
-              View All →
-            </Link>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[50px]">
-            {featuredArticles.map((article, index) => (
-              <article 
-                key={article.id} 
-                className={`group cursor-pointer animate-fadeIn opacity-0`}
-                style={{
-                  gridRowEnd: `span ${Math.ceil(parseInt(article.height) / 50) + 2}`,
-                  animationDelay: `${index * 100}ms`,
-                  animationFillMode: 'forwards'
-                }}
-              >
-                <div 
-                  className="relative overflow-hidden mb-4 rounded-sm"
-                  style={{ height: article.height }}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${article.gradient} opacity-90 group-hover:opacity-80 transition-opacity duration-700`}></div>
-                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
-                  <div className="absolute bottom-0 left-0 p-6 text-seasalt opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <p className="text-xs tracking-widest mb-2">{article.category.toUpperCase()}</p>
-                    <h3 className="text-2xl font-serif">{article.title}</h3>
-                  </div>
-                </div>
-                <p className="text-xs tracking-widest text-dim-gray mb-2">{article.category.toUpperCase()}</p>
-                <h3 className="text-lg font-serif group-hover:underline">{article.title}</h3>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Featured Products */}
-      <section className="py-24 bg-platinum">
-        <div className="container-custom">
-          <div className="flex justify-between items-end mb-12">
-            <div>
-              <h2 className="text-4xl font-serif font-light mb-2">Curated Pieces</h2>
-              <p className="text-dim-gray">Handpicked items for conscious living</p>
-            </div>
-            <Link href="/shop" className="text-sm tracking-wider hover:underline">
-              Shop All →
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="group cursor-pointer">
-                <div className="aspect-square bg-seasalt mb-4 overflow-hidden">
-                  <div className="w-full h-full bg-silver group-hover:scale-105 transition-transform duration-700"></div>
-                </div>
-                <h3 className="font-light mb-1 group-hover:underline">{product.name}</h3>
-                <p className="text-dim-gray">{product.price}</p>
+          <div className="col-span-6 lg:col-span-3 grid grid-rows-2 gap-1 lg:gap-0.5">
+            <div className="relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '50ms', animationFillMode: 'forwards' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-stone-800 to-amber-900 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Opal Beer Glass</h3>
               </div>
-            ))}
+            </div>
+            <div className="relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-100 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <h3 className="text-black text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Pewter Collection</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: 2 medium side by side */}
+          <div className="col-span-6 lg:col-span-3 h-[400px] lg:h-[500px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 to-emerald-700 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Porcelain Branches</h3>
+            </div>
+          </div>
+          <div className="col-span-6 lg:col-span-3 h-[400px] lg:h-[500px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 to-neutral-600 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Ceramic Studies</h3>
+            </div>
+          </div>
+
+          {/* Row 3: 1 wide panoramic */}
+          <div className="col-span-6 h-[300px] lg:h-[400px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-800 to-yellow-600 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Woven Textiles</h3>
+            </div>
+          </div>
+
+          {/* Row 4: 3 smaller images */}
+          <div className="col-span-6 lg:col-span-2 h-[280px] lg:h-[350px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-600 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Glass Forms</h3>
+            </div>
+          </div>
+          <div className="col-span-6 lg:col-span-2 h-[280px] lg:h-[350px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '350ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-900 to-amber-700 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Bronze Vessels</h3>
+            </div>
+          </div>
+          <div className="col-span-6 lg:col-span-2 h-[280px] lg:h-[350px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-700 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Stone Sculptures</h3>
+            </div>
+          </div>
+
+          {/* Pattern repeats */}
+          <div className="col-span-6 lg:col-span-3 h-[600px] lg:h-[800px] relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 to-indigo-800 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Indigo Dyes</h3>
+            </div>
+          </div>
+          <div className="col-span-6 lg:col-span-3 grid grid-rows-2 gap-1 lg:gap-0.5">
+            <div className="relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-950 to-orange-800 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Wood Carvings</h3>
+              </div>
+            </div>
+            <div className="relative overflow-hidden group cursor-pointer animate-fadeIn opacity-0" style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-700 to-zinc-500 transition-transform duration-700 group-hover:scale-[1.02]"></div>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <h3 className="text-white text-2xl lg:text-3xl font-serif font-light tracking-wide px-6 text-center">Metal Works</h3>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-      
-      {/* Newsletter Section */}
-      <section className="py-24">
-        <div className="container-custom">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-serif font-light mb-4">Stay Informed</h2>
-            <p className="text-dim-gray mb-8">
-              Subscribe to receive updates on new arrivals and exclusive articles
-            </p>
-            <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="flex-1 px-4 py-3 border border-silver focus:border-black-olive focus:outline-none transition-colors"
-              />
-              <button type="submit" className="button-primary">
-                Subscribe
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
+      </div>
     </>
   )
 }
