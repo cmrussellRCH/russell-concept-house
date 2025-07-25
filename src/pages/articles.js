@@ -21,14 +21,14 @@ export default function Articles() {
       <section className="py-16">
         <div className="container-custom">
           <h1 className="text-5xl font-serif font-light mb-4">Articles</h1>
-          <p className="text-lg text-neutral-600 mb-12">Thoughts and insights on design, craft, and conscious living</p>
+          <p className="text-lg text-dim-gray mb-12">Thoughts and insights on design, craft, and conscious living</p>
           
           <div className="grid gap-12">
             {articles.map((article) => (
-              <article key={article.id} className="group cursor-pointer pb-12 border-b border-neutral-100 last:border-0">
+              <article key={article.id} className="group cursor-pointer pb-12 border-b border-platinum last:border-0">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
                   <div>
-                    <p className="text-xs tracking-widest text-neutral-500 mb-2">
+                    <p className="text-xs tracking-widest text-dim-gray mb-2">
                       {article.category.toUpperCase()} • {article.date}
                     </p>
                     <h2 className="text-3xl font-serif font-light mb-3 group-hover:underline">
@@ -36,7 +36,7 @@ export default function Articles() {
                     </h2>
                   </div>
                 </div>
-                <p className="text-neutral-600 leading-relaxed mb-4 max-w-3xl">
+                <p className="text-dim-gray leading-relaxed mb-4 max-w-3xl">
                   {article.excerpt}
                 </p>
                 <Link href="#" className="text-sm tracking-wider hover:underline">

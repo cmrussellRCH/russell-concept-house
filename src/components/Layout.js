@@ -2,11 +2,11 @@ import Link from 'next/link'
 
 export default function Layout({ children }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-neutral-100">
+    <div className="min-h-screen flex flex-col bg-seasalt">
+      <header className="border-b border-silver">
         <nav className="container-custom py-6">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-serif tracking-tight">
+            <Link href="/" className="text-2xl font-serif tracking-tight text-black-olive">
               Russell Concept House
             </Link>
             
@@ -40,20 +40,20 @@ export default function Layout({ children }) {
         {children}
       </main>
       
-      <footer className="border-t border-neutral-100 mt-24">
+      <footer className="border-t border-silver mt-24">
         <div className="container-custom py-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-neutral-600 mb-4 md:mb-0">
+            <p className="text-sm text-dim-gray mb-4 md:mb-0">
               © 2024 Russell Concept House. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="#" className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors">
+              <a href="#" className="text-sm text-dim-gray hover:text-black-olive transition-colors">
                 Instagram
               </a>
-              <a href="#" className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors">
+              <a href="#" className="text-sm text-dim-gray hover:text-black-olive transition-colors">
                 Pinterest
               </a>
-              <a href="#" className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors">
+              <a href="#" className="text-sm text-dim-gray hover:text-black-olive transition-colors">
                 Contact
               </a>
             </div>

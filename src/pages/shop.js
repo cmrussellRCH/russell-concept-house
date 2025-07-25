@@ -24,17 +24,17 @@ export default function Shop() {
       <section className="py-16">
         <div className="container-custom">
           <h1 className="text-5xl font-serif font-light mb-4">Shop</h1>
-          <p className="text-lg text-neutral-600 mb-12">Carefully selected pieces for thoughtful living</p>
+          <p className="text-lg text-dim-gray mb-12">Carefully selected pieces for thoughtful living</p>
           
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-4 mb-12 pb-8 border-b border-neutral-100">
+          <div className="flex flex-wrap gap-4 mb-12 pb-8 border-b border-platinum">
             {categories.map((category) => (
               <button
                 key={category}
                 className={`text-sm tracking-wider px-4 py-2 transition-colors ${
                   category === 'All' 
-                    ? 'bg-neutral-900 text-white' 
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                    ? 'bg-black-olive text-seasalt' 
+                    : 'text-dim-gray hover:text-black-olive hover:bg-platinum'
                 }`}
               >
                 {category}
@@ -46,14 +46,14 @@ export default function Shop() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <div key={product.id} className="group cursor-pointer">
-                <div className="aspect-square bg-neutral-50 mb-4 overflow-hidden">
-                  <div className="w-full h-full bg-neutral-200 group-hover:scale-105 transition-transform duration-700"></div>
+                <div className="aspect-square bg-platinum mb-4 overflow-hidden">
+                  <div className="w-full h-full bg-silver group-hover:scale-105 transition-transform duration-700"></div>
                 </div>
-                <p className="text-xs tracking-widest text-neutral-500 mb-2">
+                <p className="text-xs tracking-widest text-dim-gray mb-2">
                   {product.category.toUpperCase()}
                 </p>
                 <h3 className="font-light mb-1 group-hover:underline">{product.name}</h3>
-                <p className="text-neutral-600">{product.price}</p>
+                <p className="text-dim-gray">{product.price}</p>
               </div>
             ))}
           </div>
