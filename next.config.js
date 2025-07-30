@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   swcMinify: true,
   images: {
     unoptimized: true,
   },
-  output: 'export',
+  // output: 'export', // Commented out - was causing issues with dynamic features
   trailingSlash: true,
 }
 

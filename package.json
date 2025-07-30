@@ -5,20 +5,35 @@
   "scripts": {
     "dev": "next dev -p 3002",
     "build": "next build",
-    "start": "next start -p 3002",
+    "start": "next start -p $PORT",
     "lint": "next lint",
     "migrate-wix": "node src/scripts/migrate-wix-content.js",
     "scrape-rss": "node src/scripts/scrape-wix-rss.js",
-    "import-to-sanity": "node src/scripts/import-to-sanity.js"
+    "scrape-blog": "node src/scripts/scrape-wix-blog-pages.js",
+    "scrape-complete": "node src/scripts/scrape-wix-complete.js",
+    "combine-posts": "node src/scripts/combine-all-posts.js",
+    "scrape-sitemap": "node src/scripts/scrape-sitemap-posts.js",
+    "import-to-sanity": "node src/scripts/import-to-sanity.js",
+    "import-fixed": "node src/scripts/import-to-sanity-fixed.js",
+    "import-html": "node src/scripts/import-from-html-backup.js",
+    "delete-articles": "node delete-all-articles.js"
   },
   "dependencies": {
+    "@sanity/block-tools": "^3.70.0",
     "@sanity/client": "^7.8.1",
+    "@sanity/image-url": "^1.1.0",
+    "@sanity/schema": "^4.1.1",
     "cheerio": "^1.1.2",
+    "cloudinary": "^2.7.0",
     "dotenv": "^17.2.1",
+    "html-to-text": "^9.0.5",
+    "jsdom": "^26.1.0",
     "next": "14.2.5",
     "node-fetch": "^2.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sharp": "^0.34.3",
+    "uuid": "^11.1.0",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {

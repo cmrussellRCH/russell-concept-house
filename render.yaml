@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: russell-concept-house
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NEXT_PUBLIC_SANITY_PROJECT_ID
+        sync: false
+      - key: NEXT_PUBLIC_SANITY_DATASET
+        sync: false
+      - key: NEXT_PUBLIC_SANITY_API_VERSION
+        sync: false
+      - key: SANITY_API_TOKEN
+        sync: false
+      - key: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+        sync: false

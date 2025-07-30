@@ -110,6 +110,50 @@ export default {
       ]
     },
     {
+      name: 'mediaType',
+      title: 'Media Type',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Images', value: 'images' },
+          { title: 'Video', value: 'video' }
+        ],
+        layout: 'radio'
+      },
+      initialValue: 'images',
+      description: 'Choose between image gallery or video for this article'
+    },
+    {
+      name: 'videoUrl',
+      title: 'YouTube Video URL',
+      type: 'url',
+      hidden: ({ document }) => document?.mediaType !== 'video',
+      validation: Rule => Rule.custom((url, context) => {
+        if (context.document?.mediaType === 'video') {
+          if (!url) {
+            return 'Video URL is required when media type is video'
+          }
+          const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+(&[\w=]*)?$/
+          if (!youtubeRegex.test(url)) {
+            return 'Please enter a valid YouTube URL'
+          }
+        }
+        return true
+      }),
+      description: 'Enter the YouTube video URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)'
+    },
+    {
+      name: 'videoDuration',
+      title: 'Video Duration',
+      type: 'string',
+      description: 'Enter video duration in M:SS or MM:SS format (e.g., 3:08 or 15:42)',
+      validation: Rule => Rule.regex(/^\d{1,2}:\d{2}$/, {
+        name: 'duration',
+        invert: false
+      }).error('Duration must be in M:SS or MM:SS format (e.g., 3:08)'),
+      hidden: ({ document }) => document?.mediaType !== 'video',
+    },
+    {
       name: 'gallery',
       title: 'Image Gallery',
       type: 'array',
@@ -121,6 +165,7 @@ export default {
           }
         }
       ],
+      hidden: ({ document }) => document?.mediaType === 'video',
       description: 'Additional images for the article'
     },
     {

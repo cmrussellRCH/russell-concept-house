@@ -6,6 +6,7 @@ const cheerio = require('cheerio');
 
 // Configuration
 const config = {
+  baseUrl: 'https://www.russellconcept.com',
   rssUrl: 'https://www.russellconcept.com/blog-feed.xml',
   outputImagesPath: path.join(process.cwd(), 'public/images/wix-rss'),
   outputDataPath: path.join(process.cwd(), 'src/data/wix-all-posts.json'),
@@ -161,47 +162,220 @@ const processPostImages = async (post, postIndex) => {
   return processedImages;
 };
 
+// Fetch RSS feed with pagination attempts
+const fetchRSSWithPagination = async () => {
+  const allPosts = new Map(); // Use link as key to avoid duplicates
+  const sources = [];
+  
+  // Try base RSS feed
+  console.log('📡 Fetching base RSS feed...');
+  try {
+    const response = await fetch(config.rssUrl, {
+      headers: { 'User-Agent': config.userAgent }
+    });
+    
+    if (response.ok) {
+      const xmlData = await response.text();
+      const parser = new xml2js.Parser();
+      const result = await parser.parseStringPromise(xmlData);
+      
+      const items = result.rss?.channel?.[0]?.item || [];
+      items.forEach(item => {
+        const link = item.link?.[0] || '';
+        if (link) {
+          allPosts.set(link, item);
+        }
+      });
+      
+      sources.push(`Base RSS: ${items.length} posts`);
+      console.log(`   ✅ Found ${items.length} posts in base feed`);
+    }
+  } catch (error) {
+    console.log(`   ❌ Base RSS error: ${error.message}`);
+  }
+  
+  // Try pagination patterns
+  const paginationPatterns = [
+    { pattern: 'page', max: 10 },     // ?page=2, ?page=3, etc.
+    { pattern: 'offset', max: 200, increment: 20 }, // ?offset=20, ?offset=40
+    { pattern: 'start', max: 200, increment: 20 }   // ?start=20, ?start=40
+  ];
+  
+  for (const { pattern, max, increment = 1 } of paginationPatterns) {
+    console.log(`\n📡 Trying ${pattern} pagination...`);
+    let found = false;
+    
+    for (let i = (pattern === 'page' ? 2 : increment); i <= max; i += increment) {
+      const url = `${config.rssUrl}?${pattern}=${i}`;
+      
+      try {
+        const response = await fetch(url, {
+          headers: { 'User-Agent': config.userAgent }
+        });
+        
+        if (response.ok) {
+          const xmlData = await response.text();
+          const parser = new xml2js.Parser();
+          const result = await parser.parseStringPromise(xmlData);
+          
+          const items = result.rss?.channel?.[0]?.item || [];
+          if (items.length > 0) {
+            let newPosts = 0;
+            items.forEach(item => {
+              const link = item.link?.[0] || '';
+              if (link && !allPosts.has(link)) {
+                allPosts.set(link, item);
+                newPosts++;
+              }
+            });
+            
+            if (newPosts > 0) {
+              console.log(`   ✅ ${pattern}=${i}: Found ${newPosts} new posts`);
+              found = true;
+            }
+          } else {
+            break; // No more posts
+          }
+        }
+      } catch (error) {
+        // Pagination endpoint doesn't exist, move on
+        break;
+      }
+    }
+    
+    if (found) {
+      sources.push(`${pattern} pagination: Added new posts`);
+    }
+  }
+  
+  // Try sitemaps
+  const sitemapUrls = [
+    '/blog/sitemap.xml',
+    '/sitemap.xml',
+    '/sitemap_index.xml'
+  ];
+  
+  for (const sitemapPath of sitemapUrls) {
+    console.log(`\n📡 Trying sitemap: ${sitemapPath}...`);
+    
+    try {
+      const response = await fetch(`${config.baseUrl}${sitemapPath}`, {
+        headers: { 'User-Agent': config.userAgent }
+      });
+      
+      if (response.ok) {
+        const xmlData = await response.text();
+        const parser = new xml2js.Parser();
+        const result = await parser.parseStringPromise(xmlData);
+        
+        // Look for blog URLs in sitemap
+        const urls = [];
+        
+        // Handle standard sitemap format
+        if (result.urlset?.url) {
+          result.urlset.url.forEach(entry => {
+            const loc = entry.loc?.[0];
+            if (loc && loc.includes('/blog/') && !loc.endsWith('/blog/')) {
+              urls.push(loc);
+            }
+          });
+        }
+        
+        // Handle sitemap index format
+        if (result.sitemapindex?.sitemap) {
+          console.log('   Found sitemap index, checking sub-sitemaps...');
+          for (const sitemap of result.sitemapindex.sitemap) {
+            const loc = sitemap.loc?.[0];
+            if (loc && loc.includes('blog')) {
+              // Fetch sub-sitemap
+              try {
+                const subResponse = await fetch(loc, {
+                  headers: { 'User-Agent': config.userAgent }
+                });
+                
+                if (subResponse.ok) {
+                  const subXml = await subResponse.text();
+                  const subResult = await parser.parseStringPromise(subXml);
+                  
+                  if (subResult.urlset?.url) {
+                    subResult.urlset.url.forEach(entry => {
+                      const url = entry.loc?.[0];
+                      if (url && url.includes('/blog/') && !url.endsWith('/blog/')) {
+                        urls.push(url);
+                      }
+                    });
+                  }
+                }
+              } catch (error) {
+                console.log(`   ⚠️  Sub-sitemap error: ${error.message}`);
+              }
+            }
+          }
+        }
+        
+        if (urls.length > 0) {
+          console.log(`   ✅ Found ${urls.length} blog URLs in sitemap`);
+          sources.push(`${sitemapPath}: ${urls.length} URLs`);
+          
+          // Store URLs for potential scraping if needed
+          const sitemapData = {
+            source: sitemapPath,
+            urls: urls,
+            timestamp: new Date().toISOString()
+          };
+          
+          await fs.writeFile(
+            path.join(process.cwd(), 'src/data/wix-sitemap-urls.json'),
+            JSON.stringify(sitemapData, null, 2)
+          );
+        }
+      }
+    } catch (error) {
+      console.log(`   ❌ Sitemap error: ${error.message}`);
+    }
+  }
+  
+  return { posts: Array.from(allPosts.values()), sources };
+};
+
 // Main scraping function
 const scrapeRSSFeed = async () => {
-  console.log('🚀 Starting Wix RSS feed scraper...\n');
-  console.log(`📡 Fetching RSS feed from: ${config.rssUrl}\n`);
+  console.log('🚀 Starting comprehensive Wix content scraper...\n');
+  console.log('🎯 Goal: Capture all 111 blog posts\n');
   
   try {
     // Ensure output directories exist
     await fs.mkdir(config.outputImagesPath, { recursive: true });
     await fs.mkdir(path.dirname(config.outputDataPath), { recursive: true });
     
-    // Fetch RSS feed
-    const response = await fetch(config.rssUrl, {
-      headers: { 'User-Agent': config.userAgent }
+    // Fetch posts from all sources
+    const { posts: rssItems, sources } = await fetchRSSWithPagination();
+    
+    console.log(`\n📊 RSS Collection Summary:`);
+    console.log(`   Total unique posts found: ${rssItems.length}`);
+    sources.forEach(source => {
+      console.log(`   - ${source}`);
     });
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
+    if (rssItems.length < 111) {
+      console.log(`\n⚠️  WARNING: Only found ${rssItems.length} posts out of expected 111`);
+      console.log(`   Missing: ${111 - rssItems.length} posts`);
+      console.log(`\n   Possible reasons:`);
+      console.log(`   - Some posts might be drafts or unpublished`);
+      console.log(`   - RSS feed might have limits`);
+      console.log(`   - Posts might be in different sections`);
+      console.log(`\n   Check src/data/wix-sitemap-urls.json for additional blog URLs`);
     }
-    
-    const xmlData = await response.text();
-    console.log(`✅ RSS feed fetched successfully\n`);
-    
-    // Parse XML
-    const parser = new xml2js.Parser();
-    const result = await parser.parseStringPromise(xmlData);
-    
-    const channel = result.rss?.channel?.[0];
-    if (!channel) {
-      throw new Error('Invalid RSS feed structure');
-    }
-    
-    const items = channel.item || [];
-    console.log(`📊 Found ${items.length} posts in RSS feed\n`);
     
     // Process each post
     const posts = [];
     const allImages = [];
     
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      console.log(`\n📝 Processing post ${i + 1}/${items.length}`);
+    console.log(`\n📝 Processing ${rssItems.length} posts...\n`);
+    
+    for (let i = 0; i < rssItems.length; i++) {
+      const item = rssItems[i];
+      console.log(`\n📝 Processing post ${i + 1}/${rssItems.length}`);
       
       try {
         // Parse post data
@@ -230,13 +404,16 @@ const scrapeRSSFeed = async () => {
     
     const output = {
       metadata: {
-        source: 'RSS Feed',
+        source: 'RSS Feed + Pagination + Sitemaps',
         feedUrl: config.rssUrl,
         scrapedAt: new Date().toISOString(),
+        expectedPosts: 111,
         totalPosts: posts.length,
+        missingPosts: Math.max(0, 111 - posts.length),
         totalImages: allImages.length,
         successfulDownloads,
-        failedDownloads
+        failedDownloads,
+        sources
       },
       posts
     };
@@ -248,10 +425,13 @@ const scrapeRSSFeed = async () => {
     );
     
     // Print summary
-    console.log('\n' + '='.repeat(50));
-    console.log('📊 RSS SCRAPING COMPLETE');
-    console.log('='.repeat(50));
-    console.log(`✅ Posts scraped: ${posts.length}`);
+    console.log('\n' + '='.repeat(60));
+    console.log('📊 SCRAPING COMPLETE');
+    console.log('='.repeat(60));
+    console.log(`✅ Posts scraped: ${posts.length} / 111`);
+    if (posts.length < 111) {
+      console.log(`⚠️  Missing posts: ${111 - posts.length}`);
+    }
     console.log(`🖼️  Images found: ${allImages.length}`);
     console.log(`   Downloaded: ${successfulDownloads}`);
     console.log(`   Failed: ${failedDownloads}`);
@@ -259,13 +439,22 @@ const scrapeRSSFeed = async () => {
     console.log(`📁 Images saved to: ${config.outputImagesPath}`);
     
     // Show sample of posts
-    console.log('\n📋 Sample posts:');
-    posts.slice(0, 5).forEach((post, i) => {
+    console.log('\n📋 Recent posts:');
+    posts.slice(0, 10).forEach((post, i) => {
       console.log(`   ${i + 1}. ${post.title} (${post.date})`);
     });
     
-    if (posts.length > 5) {
-      console.log(`   ... and ${posts.length - 5} more`);
+    if (posts.length > 10) {
+      console.log(`   ... and ${posts.length - 10} more`);
+    }
+    
+    // Final recommendations
+    if (posts.length < 111) {
+      console.log('\n💡 To find missing posts:');
+      console.log('1. Check src/data/wix-sitemap-urls.json for blog URLs');
+      console.log('2. Try accessing individual post pages directly');
+      console.log('3. Check if posts are in draft/unpublished state on Wix');
+      console.log('4. Consider manual export from Wix dashboard if available');
     }
     
   } catch (error) {

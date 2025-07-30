@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configuration Test Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .config-change {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .test-step {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Next.js Configuration Changes - Hover Fix</h1>
+    
+    <div class="config-change">
+        <h2>Configuration Changes Made:</h2>
+        <ol>
+            <li><strong>Disabled React StrictMode</strong>: Set <code>reactStrictMode: false</code> to prevent double rendering in development</li>
+            <li><strong>Commented out Static Export</strong>: Removed <code>output: 'export'</code> to allow dynamic client-side features</li>
+        </ol>
+    </div>
+
+    <div class="test-step">
+        <h2>To Test the Fix:</h2>
+        <ol>
+            <li>The server is currently running on port 3002</li>
+            <li>Visit: <a href="http://localhost:3002/articles" target="_blank">http://localhost:3002/articles</a></li>
+            <li>Hover over different articles and verify:
+                <ul>
+                    <li>Background images appear on hover</li>
+                    <li>Images stay visible (don't disappear after 1 second)</li>
+                    <li>All articles work, not just "Woody Hook"</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="config-change">
+        <h2>Why These Changes Should Fix the Issue:</h2>
+        <ul>
+            <li><strong>React StrictMode</strong> was causing components to render twice in development, potentially interfering with hover state management</li>
+            <li><strong>Static Export Mode</strong> was designed for fully static sites and could interfere with dynamic client-side features like hover effects</li>
+        </ul>
+    </div>
+
+    <div class="test-step">
+        <h2>If the Issue Persists:</h2>
+        <p>Try these steps:</p>
+        <ol>
+            <li>Stop the dev server (Ctrl+C in terminal)</li>
+            <li>Delete the <code>.next</code> folder: <code>rm -rf .next</code></li>
+            <li>Clear browser cache</li>
+            <li>Restart the server: <code>npm run dev</code></li>
+        </ol>
+    </div>
+</body>
+</html>

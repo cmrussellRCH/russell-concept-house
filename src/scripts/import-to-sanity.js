@@ -1,7 +1,12 @@
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const { createClient } = require('@sanity/client');
-require('dotenv').config();
+const fetch = require('node-fetch');
+
+// Load environment variables from project root
+const envPath = path.join(__dirname, '../../.env');
+require('dotenv').config({ path: envPath });
 
 // Configuration
 const config = {
@@ -14,6 +19,67 @@ const config = {
 
 // Initialize Sanity client
 const client = createClient(config);
+
+// HTML to Portable Text converter
+const htmlToPortableText = (html) => {
+  if (!html) return [];
+  
+  // Basic conversion - you may want to enhance this
+  const blocks = [];
+  
+  // Simple paragraph extraction
+  const paragraphs = html.split(/<\/p>|<br\s*\/?>|\n\n/).filter(p => p.trim());
+  
+  paragraphs.forEach(p => {
+    // Clean HTML tags for now
+    const text = p.replace(/<[^>]*>/g, '').trim();
+    if (text) {
+      blocks.push({
+        _type: 'block',
+        style: 'normal',
+        children: [{
+          _type: 'span',
+          text: text
+        }],
+        markDefs: []
+      });
+    }
+  });
+  
+  return blocks;
+};
+
+// Upload image to Sanity
+const uploadImageToSanity = async (imagePath, filename) => {
+  try {
+    let imageBuffer;
+    
+    if (imagePath.startsWith('http')) {
+      // Download from URL
+      const response = await fetch(imagePath);
+      if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`);
+      imageBuffer = await response.buffer();
+    } else {
+      // Read local file
+      const fullPath = path.join(process.cwd(), 'src/data/wix-images', path.basename(imagePath));
+      if (fsSync.existsSync(fullPath)) {
+        imageBuffer = await fs.readFile(fullPath);
+      } else {
+        throw new Error(`Local image not found: ${fullPath}`);
+      }
+    }
+    
+    // Upload to Sanity
+    const asset = await client.assets.upload('image', imageBuffer, {
+      filename: filename || path.basename(imagePath)
+    });
+    
+    return asset;
+  } catch (error) {
+    console.error(`Failed to upload image ${imagePath}:`, error.message);
+    return null;
+  }
+};
 
 // Utilities
 const parseDate = (dateString) => {
@@ -142,59 +208,169 @@ const createSanityDocumentFromRSS = (post) => {
   return doc;
 };
 
+// Create Sanity document from sitemap data
+const createSanityDocumentFromSitemap = async (post) => {
+  const doc = {
+    _type: 'article',
+    title: post.title,
+    slug: {
+      _type: 'slug',
+      current: post.slug
+    },
+    publishedAt: parseDate(post.date),
+    excerpt: post.description || createExcerpt(post.content),
+    category: inferCategory(post.title, post.content),
+    author: post.author || 'Russell Nicolau',
+    
+    // Convert HTML content to Portable Text
+    content: htmlToPortableText(post.content),
+    
+    // Store migration metadata
+    _migrationData: {
+      source: 'sitemap',
+      originalDate: post.date,
+      imageCount: post.images ? post.images.length : 0,
+      migrated: true,
+      sourceUrl: post.url,
+      fetchedAt: post.fetchedAt
+    }
+  };
+  
+  // Process main image (first image)
+  if (post.images && post.images.length > 0) {
+    console.log(`   📸 Uploading main image...`);
+    
+    // Check if images have localPath property
+    const firstImage = post.images[0];
+    const imagePath = firstImage.localPath || firstImage.url;
+    
+    const asset = await uploadImageToSanity(
+      imagePath,
+      `${post.slug}-main.jpg`
+    );
+    
+    if (asset) {
+      doc.mainImage = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id
+        }
+      };
+    }
+  }
+  
+  return doc;
+};
+
 // Load all data sources
 const loadAllPosts = async () => {
-  const allPosts = new Map(); // Use slug as key to avoid duplicates
-  let sources = [];
-  
-  // Try to load RSS data (111 posts)
+  // Try to load complete sitemap data first (all 111 posts)
   try {
-    const rssDataPath = path.join(process.cwd(), 'src/data/wix-all-posts.json');
-    const rssData = JSON.parse(await fs.readFile(rssDataPath, 'utf-8'));
+    const sitemapDataPath = path.join(process.cwd(), 'src/data/wix-all-111-posts.json');
+    const sitemapData = JSON.parse(await fs.readFile(sitemapDataPath, 'utf-8'));
     
-    console.log(`📡 Loaded ${rssData.posts.length} posts from RSS feed`);
-    sources.push(`RSS (${rssData.posts.length} posts)`);
-    
-    // Add RSS posts (these are preferred)
-    rssData.posts.forEach(post => {
-      allPosts.set(post.slug, {
+    // Check if it's an array directly (new format from sitemap scraper)
+    if (Array.isArray(sitemapData)) {
+      console.log(`🌐 Loaded ${sitemapData.length} posts from complete sitemap`);
+      console.log(`   This contains all blog posts from the sitemap scraper\n`);
+      
+      // Convert sitemap data to expected format
+      return sitemapData.filter(post => !post.error).map(post => ({
         ...post,
-        _source: 'rss'
-      });
-    });
+        _source: 'sitemap',
+        slug: post.url.split('/').pop() // Extract slug from URL
+      }));
+    } else {
+      // Handle old format with posts property
+      console.log(`🌐 Loaded ${sitemapData.posts.length} posts from complete sitemap`);
+      console.log(`   Successfully scraped: ${sitemapData.successfulScrapes}`);
+      console.log(`   Failed scrapes: ${sitemapData.failedScrapes}`);
+      console.log(`   This should contain all 111 blog posts\n`);
+      
+      return sitemapData.posts.filter(post => !post.error).map(post => ({
+        ...post,
+        _source: 'sitemap',
+        slug: post.slug || post.url.split('/').pop()
+      }));
+    }
   } catch (error) {
-    console.log('⚠️  RSS data not found, skipping...');
-  }
-  
-  // Try to load migration data (33 posts)
-  try {
-    const migrationDataPath = path.join(process.cwd(), 'src/data/wix-migration.json');
-    const migrationData = JSON.parse(await fs.readFile(migrationDataPath, 'utf-8'));
+    console.log('⚠️  Complete sitemap data not found, trying combined data...\n');
     
-    console.log(`📁 Loaded ${migrationData.articles.length} posts from backup`);
-    sources.push(`Backup (${migrationData.articles.length} posts)`);
+    // Try to load combined data
+    try {
+      const combinedDataPath = path.join(process.cwd(), 'src/data/wix-combined-posts.json');
+      const combinedData = JSON.parse(await fs.readFile(combinedDataPath, 'utf-8'));
+      
+      console.log(`📊 Loaded ${combinedData.posts.length} posts from combined data`);
+      console.log(`   Sources breakdown:`);
+      console.log(`   - RSS only: ${combinedData.metadata.sources.rssOnly}`);
+      console.log(`   - Migration only: ${combinedData.metadata.sources.migrationOnly}`);
+      console.log(`   - Both sources: ${combinedData.metadata.sources.both}`);
+      console.log(`   - Missing: ${combinedData.metadata.missingPosts} (out of expected 111)\n`);
+      
+      // Map source field correctly
+      return combinedData.posts.map(post => ({
+        ...post,
+        _source: post.source === 'both' ? 'rss' : post.source // Prefer RSS if in both
+      }));
+    } catch (error) {
+      // Fall back to loading individual sources
+      console.log('⚠️  Combined data not found, loading individual sources...\n');
     
-    // Add migration posts (only if not already present from RSS)
-    migrationData.articles.forEach(article => {
-      if (!allPosts.has(article.slug)) {
-        allPosts.set(article.slug, {
-          ...article,
-          _source: 'migration'
+    const allPosts = new Map(); // Use slug as key to avoid duplicates
+    let sources = [];
+    
+    // Try to load RSS data
+    try {
+      const rssDataPath = path.join(process.cwd(), 'src/data/wix-all-posts.json');
+      const rssData = JSON.parse(await fs.readFile(rssDataPath, 'utf-8'));
+      
+      console.log(`📡 Loaded ${rssData.posts.length} posts from RSS feed`);
+      sources.push(`RSS (${rssData.posts.length} posts)`);
+      
+      // Add RSS posts (these are preferred)
+      rssData.posts.forEach(post => {
+        allPosts.set(post.slug, {
+          ...post,
+          _source: 'rss'
         });
-      }
-    });
-  } catch (error) {
-    console.log('⚠️  Migration data not found, skipping...');
+      });
+    } catch (error) {
+      console.log('⚠️  RSS data not found, skipping...');
+    }
+    
+    // Try to load migration data
+    try {
+      const migrationDataPath = path.join(process.cwd(), 'src/data/wix-migration.json');
+      const migrationData = JSON.parse(await fs.readFile(migrationDataPath, 'utf-8'));
+      
+      console.log(`📁 Loaded ${migrationData.articles.length} posts from backup`);
+      sources.push(`Backup (${migrationData.articles.length} posts)`);
+      
+      // Add migration posts (only if not already present from RSS)
+      migrationData.articles.forEach(article => {
+        if (!allPosts.has(article.slug)) {
+          allPosts.set(article.slug, {
+            ...article,
+            _source: 'migration'
+          });
+        }
+      });
+    } catch (error) {
+      console.log('⚠️  Migration data not found, skipping...');
+    }
+    
+    if (allPosts.size === 0) {
+      throw new Error('No posts found in any data source!');
+    }
+    
+    console.log(`\n📊 Total unique posts to import: ${allPosts.size}`);
+    console.log(`   Sources: ${sources.join(', ')}\n`);
+    
+    return Array.from(allPosts.values());
+    }
   }
-  
-  if (allPosts.size === 0) {
-    throw new Error('No posts found in either data source!');
-  }
-  
-  console.log(`\n📊 Total unique posts to import: ${allPosts.size}`);
-  console.log(`   Sources: ${sources.join(', ')}\n`);
-  
-  return Array.from(allPosts.values());
 };
 
 // Import articles to Sanity
@@ -219,6 +395,7 @@ const importToSanity = async () => {
       failed: 0,
       skipped: 0,
       bySource: {
+        sitemap: { successful: 0, failed: 0, skipped: 0 },
         rss: { successful: 0, failed: 0, skipped: 0 },
         migration: { successful: 0, failed: 0, skipped: 0 }
       },
@@ -242,14 +419,22 @@ const importToSanity = async () => {
         if (existing) {
           console.log(`   ⚠️  Article already exists, skipping...`);
           results.skipped++;
+          if (!results.bySource[source]) {
+            results.bySource[source] = { successful: 0, failed: 0, skipped: 0 };
+          }
           results.bySource[source].skipped++;
           continue;
         }
         
         // Create Sanity document based on source
-        const doc = source === 'rss' 
-          ? createSanityDocumentFromRSS(post)
-          : createSanityDocumentFromMigration(post);
+        let doc;
+        if (source === 'sitemap') {
+          doc = await createSanityDocumentFromSitemap(post);
+        } else if (source === 'rss') {
+          doc = createSanityDocumentFromRSS(post);
+        } else {
+          doc = createSanityDocumentFromMigration(post);
+        }
         
         // Create the document
         console.log(`   📝 Creating document...`);
@@ -257,11 +442,17 @@ const importToSanity = async () => {
         
         console.log(`   ✅ Successfully created with ID: ${created._id}`);
         results.successful++;
+        if (!results.bySource[source]) {
+          results.bySource[source] = { successful: 0, failed: 0, skipped: 0 };
+        }
         results.bySource[source].successful++;
         
       } catch (error) {
         console.error(`   ❌ Error: ${error.message}`);
         results.failed++;
+        if (!results.bySource[source]) {
+          results.bySource[source] = { successful: 0, failed: 0, skipped: 0 };
+        }
         results.bySource[source].failed++;
         results.errors.push({
           post: post.title,
@@ -282,6 +473,9 @@ const importToSanity = async () => {
     
     // Show breakdown by source
     console.log('\n📈 Breakdown by source:');
+    if (results.bySource.sitemap.successful + results.bySource.sitemap.skipped + results.bySource.sitemap.failed > 0) {
+      console.log(`   Sitemap: ${results.bySource.sitemap.successful} imported, ${results.bySource.sitemap.skipped} skipped, ${results.bySource.sitemap.failed} failed`);
+    }
     console.log(`   RSS Feed: ${results.bySource.rss.successful} imported, ${results.bySource.rss.skipped} skipped, ${results.bySource.rss.failed} failed`);
     console.log(`   Backup: ${results.bySource.migration.successful} imported, ${results.bySource.migration.skipped} skipped, ${results.bySource.migration.failed} failed`);
     
@@ -295,10 +489,16 @@ const importToSanity = async () => {
     if (results.successful > 0) {
       console.log('\n🎉 Next steps:');
       console.log('1. Visit your Sanity Studio to review the imported articles');
-      console.log('2. Add images using the Cloudinary integration');
-      console.log('3. Convert plain text content to rich text blocks');
-      console.log('4. Review and update categories as needed');
+      console.log('2. Main images have been uploaded and set for homepage grid');
+      console.log('3. Review and enhance the converted content as needed');
+      console.log('4. Add additional images from the blog posts if needed');
+      console.log('5. Review and update categories as needed');
     }
+    
+    console.log('\n📝 Note about images:');
+    console.log('- First image from each post is set as mainImage for homepage grid');
+    console.log('- Images were uploaded to Sanity asset pipeline');
+    console.log('- Additional post images can be added to content later');
     
   } catch (error) {
     console.error('\n❌ Fatal error:', error);

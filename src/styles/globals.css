@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global font size reduction - 90% of browser default */
+html {
+  font-size: 90%; /* Reduces all rem-based sizes by 10% */
+}
+
+/* Optional: Slightly less reduction on mobile for readability */
+@media (max-width: 640px) {
+  html {
+    font-size: 87.5%; /* Ensures text remains readable on small screens */
+  }
+}
+
 @layer base {
   html {
     @apply antialiased;
