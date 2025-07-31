@@ -249,6 +249,7 @@ export default function ArticlesPage({ articles }) {
             opacity: 1;
           }
           
+          /* Mobile category filter improvements */
           @media (max-width: 768px) {
             .categories-container:hover .category-list,
             .categories-container .category-list {
@@ -260,6 +261,58 @@ export default function ArticlesPage({ articles }) {
             .categories-label {
               opacity: 1;
               pointer-events: all;
+            }
+            
+            /* Mobile category filter wrapper */
+            .category-filter-wrapper {
+              position: relative;
+              width: 100%;
+              margin: 0 -1rem;
+              padding: 0 1rem;
+            }
+            
+            .categories-container {
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            
+            .categories-container::-webkit-scrollbar {
+              display: none;
+            }
+            
+            .category-list {
+              position: relative;
+              padding: 0 1rem;
+              gap: 0.75rem;
+            }
+            
+            /* Active category button styles */
+            .category-btn {
+              padding: 0.5rem 1rem;
+              border-radius: 9999px;
+              transition: all 0.2s ease;
+              background: #f3f4f6;
+              color: #374151;
+            }
+            
+            .category-btn.active {
+              background: #000;
+              color: #fff;
+              font-weight: 400;
+            }
+            
+            /* Scroll indicator gradient */
+            .scroll-indicator {
+              position: absolute;
+              right: 0;
+              top: 0;
+              bottom: 0;
+              width: 2rem;
+              background: linear-gradient(to left, #fafafa, transparent);
+              pointer-events: none;
+              z-index: 10;
             }
           }
           
@@ -292,6 +345,16 @@ export default function ArticlesPage({ articles }) {
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             cursor: pointer;
             position: relative;
+          }
+          
+          /* Mobile touch area improvements */
+          @media (max-width: 768px) {
+            .article-row {
+              padding: 2rem 1rem;
+              margin: 0 -1rem;
+              touch-action: pan-y;
+              width: 100%;
+            }
           }
           
           .article-row:hover {
@@ -567,21 +630,25 @@ export default function ArticlesPage({ articles }) {
               <header className="header-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {/* Filter Section */}
                 <div className="filter-section" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                  <div className="categories-container">
-                    <span className="categories-label">
-                      {selectedCategory === 'all' ? 'All' : selectedCategory.toUpperCase()}
-                    </span>
-                    <div className="category-list">
-                      {allCategories.map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`category-btn ${selectedCategory === cat ? 'active' : ''}`}
-                        >
-                          {cat.toUpperCase()}
-                        </button>
-                      ))}
+                  <div className="category-filter-wrapper lg:contents">
+                    <div className="categories-container">
+                      <span className="categories-label">
+                        {selectedCategory === 'all' ? 'All' : selectedCategory.toUpperCase()}
+                      </span>
+                      <div className="category-list">
+                        {allCategories.map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={`category-btn ${selectedCategory === cat ? 'active' : ''}`}
+                          >
+                            {cat.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    {/* Mobile scroll indicator */}
+                    <div className="scroll-indicator lg:hidden"></div>
                   </div>
                 </div>
               </header>

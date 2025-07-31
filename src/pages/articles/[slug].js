@@ -1003,7 +1003,7 @@ export default function ArticlePage({ article }) {
         <div className="article-two-column-container">
           
           {/* Mobile Layout - Hidden on desktop */}
-          <div className="md:hidden">
+          <div className="md:hidden px-4 pt-8">
             {/* Mobile Title */}
             <h1 className="text-3xl font-light mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
               {article.title}
@@ -1016,7 +1016,7 @@ export default function ArticlePage({ article }) {
             
             {/* Mobile Images */}
             {allImages.length > 0 && (
-              <div className="mb-8">
+              <div className="mb-8 -mx-4">
                 <img 
                   src={urlFor(allImages[selectedImage])
                     .width(800)
@@ -1027,7 +1027,7 @@ export default function ArticlePage({ article }) {
                 />
                 {/* Thumbnails for multiple images */}
                 {allImages.length > 1 && (
-                  <div className="flex gap-2 justify-center mb-2">
+                  <div className="flex gap-2 justify-center mb-2 px-4">
                     {allImages.map((image, index) => (
                       <div
                         key={index}

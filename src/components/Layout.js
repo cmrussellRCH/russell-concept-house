@@ -61,16 +61,16 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
     : 'text-sm tracking-wider text-dim-gray hover:text-black-olive transition-colors duration-600 ease-in-out'
 
   const navClasses = isDarkPage
-    ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out'
+    ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header'
     : isHomePage
-    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out ${
-        scrolled ? 'shadow-sm' : ''
+    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out mobile-nav-header ${
+        scrolled ? 'shadow-sm scrolled' : ''
       }`
     : isArticlesPage
-    ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out ${
+    ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
         hideHeader ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`
-    : `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out`
+      } ${scrolled ? 'scrolled' : ''}`
+    : `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header ${scrolled ? 'scrolled' : ''}`
 
 
   return (
@@ -277,16 +277,16 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
             padding: 1rem 1.5rem !important;
           }
           
-          /* Ensure mobile nav has proper backdrop and shadow effects */
+          /* Enhanced mobile nav with frosted glass effect */
           .mobile-nav-header {
-            background-color: rgba(251, 251, 250, 0.9);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             transition: box-shadow 0.3s ease-in-out;
           }
           
           .mobile-nav-header.scrolled {
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
           }
           
           /* Dark mode mobile nav */
