@@ -1002,6 +1002,80 @@ export default function ArticlePage({ article }) {
         // Regular Article Layout - Two Column
         <div className="article-two-column-container">
           
+          {/* Mobile Layout - Hidden on desktop */}
+          <div className="md:hidden">
+            {/* Mobile Title */}
+            <h1 className="text-3xl font-light mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
+              {article.title}
+            </h1>
+            
+            {/* Mobile Date */}
+            <div className="text-sm text-gray-600 mb-6">
+              {formatDate(article.publishedAt)}
+            </div>
+            
+            {/* Mobile Images */}
+            {allImages.length > 0 && (
+              <div className="mb-8">
+                <img 
+                  src={urlFor(allImages[selectedImage])
+                    .width(800)
+                    .quality(90)
+                    .url()}
+                  alt={`${article.title} - Image ${selectedImage + 1}`}
+                  className="w-full mb-4"
+                />
+                {/* Thumbnails for multiple images */}
+                {allImages.length > 1 && (
+                  <div className="flex gap-2 justify-center mb-2">
+                    {allImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`w-16 h-16 cursor-pointer ${index === selectedImage ? 'ring-2 ring-black' : 'opacity-70'}`}
+                        onClick={() => setSelectedImage(index)}
+                      >
+                        <img
+                          src={urlFor(image).width(150).quality(70).url()}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Mobile Body Text */}
+            <div className="article-content">
+              {article.body ? (
+                renderContent(article.body, purchaseLink)
+              ) : (
+                <p className="text-dim-gray">Content coming soon...</p>
+              )}
+              
+              {purchaseLink && (
+                <div className="purchase-section">
+                  <a href={purchaseLink.url} className="purchase-link" target="_blank" rel="noopener noreferrer">
+                    <span className="purchase-text">Available at</span>
+                    <span className="brand-name">{brandName || purchaseLink.text}</span>
+                    <svg className="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M7 7h10v10M7 17L17 7"/>
+                    </svg>
+                  </a>
+                </div>
+              )}
+              
+              <div className="rch-attribution">
+                <p className="attribution-label">RCH Team</p>
+                <p className="attribution-name">Russell Concept House Editorial</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Desktop Layout - Hidden on mobile */}
+          <div className="hidden md:contents">
+          
           {/* LEFT COLUMN - Text Content */}
           <div className="text-column">
             <div className="text-content-wrapper">
@@ -1121,6 +1195,8 @@ export default function ArticlePage({ article }) {
               </div>
             </div>
           )}
+          
+          </div>
           
         </div>
       )}

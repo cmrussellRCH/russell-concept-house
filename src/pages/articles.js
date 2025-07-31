@@ -146,7 +146,8 @@ export default function ArticlesPage({ articles }) {
             z-index: -1;
           }
           
-          .article-row:hover::before {
+          .article-row:hover::before,
+          .article-row:active::before {
             opacity: 1;
           }
           
@@ -568,7 +569,7 @@ export default function ArticlesPage({ articles }) {
                 <div className="filter-section" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
                   <div className="categories-container">
                     <span className="categories-label">
-                      {selectedCategory === 'all' ? 'ALL CATEGORIES' : selectedCategory.toUpperCase()}
+                      {selectedCategory === 'all' ? 'All' : selectedCategory.toUpperCase()}
                     </span>
                     <div className="category-list">
                       {allCategories.map((cat) => (

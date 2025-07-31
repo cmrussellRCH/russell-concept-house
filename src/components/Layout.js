@@ -63,7 +63,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
   const navClasses = isDarkPage
     ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out'
     : isHomePage
-    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm ${
+    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out ${
         scrolled ? 'shadow-sm' : ''
       }`
     : isArticlesPage
@@ -271,9 +271,27 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           opacity: 0.5;
         }
         
+        /* Mobile navigation styles */
         @media (max-width: 1023px) {
           nav {
             padding: 1rem 1.5rem !important;
+          }
+          
+          /* Ensure mobile nav has proper backdrop and shadow effects */
+          .mobile-nav-header {
+            background-color: rgba(251, 251, 250, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: box-shadow 0.3s ease-in-out;
+          }
+          
+          .mobile-nav-header.scrolled {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+          }
+          
+          /* Dark mode mobile nav */
+          .dark-page .mobile-nav-header {
+            background-color: rgba(45, 43, 41, 0.95);
           }
         }
       `}</style>
