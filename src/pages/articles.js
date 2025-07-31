@@ -288,19 +288,22 @@ export default function ArticlesPage({ articles }) {
               gap: 0.75rem;
             }
             
-            /* Active category button styles */
+            /* Minimal category button styles - underline approach */
             .category-btn {
-              padding: 0.5rem 1rem;
-              border-radius: 9999px;
+              padding: 0.5rem 0.25rem;
+              padding-bottom: 0.75rem;
+              border-bottom: 2px solid transparent;
               transition: all 0.2s ease;
-              background: #f3f4f6;
-              color: #374151;
+              background: none;
+              color: #9ca3af;
+              font-size: 0.875rem;
+              font-weight: 400;
             }
             
             .category-btn.active {
-              background: #000;
-              color: #fff;
-              font-weight: 400;
+              border-bottom-color: #000;
+              color: #000;
+              font-weight: 500;
             }
             
             /* Scroll indicator gradient */
@@ -354,6 +357,16 @@ export default function ArticlesPage({ articles }) {
               margin: 0 -1rem;
               touch-action: pan-y;
               width: 100%;
+              -webkit-tap-highlight-color: transparent;
+              -webkit-touch-callout: none;
+              -webkit-user-select: none;
+              user-select: none;
+            }
+            
+            /* Make background image show on touch for mobile */
+            .article-row:active::before {
+              opacity: 1;
+              transition: opacity 0.1s ease-in-out;
             }
           }
           

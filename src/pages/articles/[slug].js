@@ -638,8 +638,41 @@ export default function ArticlePage({ article }) {
           }
           
           @media (max-width: 768px) {
+            /* Prevent horizontal scroll */
+            body {
+              overflow-x: hidden;
+            }
+            
+            .article-detail-page {
+              overflow-x: hidden;
+              width: 100%;
+              max-width: 100vw;
+            }
+            
+            .article-two-column-container {
+              width: 100%;
+              max-width: 100%;
+              overflow-x: hidden;
+              padding-left: 0;
+              padding-right: 0;
+            }
+            
+            /* Mobile layout container */
+            .article-detail-mobile {
+              width: 100%;
+              max-width: 100vw;
+              overflow-x: hidden;
+            }
+            
+            /* Ensure all content respects container */
+            .article-detail-mobile * {
+              max-width: 100%;
+            }
+            
             .article-title {
               white-space: normal;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
             }
             
             .product-name {
@@ -670,10 +703,29 @@ export default function ArticlePage({ article }) {
             
             .main-image {
               max-width: 100%;
+              height: auto;
+              display: block;
             }
             
             .image-box {
               padding: 1.5rem;
+            }
+            
+            /* Images should be contained */
+            img {
+              max-width: 100%;
+              height: auto;
+            }
+            
+            /* Prevent any overflow from purchase links */
+            .purchase-section {
+              overflow-x: hidden;
+              word-wrap: break-word;
+            }
+            
+            .purchase-link {
+              max-width: 100%;
+              overflow-wrap: break-word;
             }
           }
 

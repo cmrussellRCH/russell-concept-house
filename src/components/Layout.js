@@ -63,14 +63,14 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
   const navClasses = isDarkPage
     ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header'
     : isHomePage
-    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out mobile-nav-header ${
+    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/85 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out mobile-nav-header ${
         scrolled ? 'shadow-sm scrolled' : ''
       }`
     : isArticlesPage
     ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
         hideHeader ? 'opacity-0 pointer-events-none' : 'opacity-100'
       } ${scrolled ? 'scrolled' : ''}`
-    : `fixed top-0 left-0 right-0 z-50 bg-seasalt/90 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header ${scrolled ? 'scrolled' : ''}`
+    : `fixed top-0 left-0 right-0 z-50 bg-seasalt/85 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header ${scrolled ? 'scrolled' : ''}`
 
 
   return (
