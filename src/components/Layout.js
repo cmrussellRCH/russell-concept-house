@@ -67,7 +67,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
         scrolled ? 'shadow-sm scrolled' : ''
       }`
     : isArticlesPage
-    ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
+    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/75 backdrop-blur-sm transition-opacity duration-600 ease-in-out mobile-nav-header ${
         hideHeader ? 'opacity-0 pointer-events-none' : 'opacity-100'
       } ${scrolled ? 'scrolled' : ''}`
     : `fixed top-0 left-0 right-0 z-50 bg-seasalt/85 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header ${scrolled ? 'scrolled' : ''}`
@@ -293,10 +293,15 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           .dark-page .mobile-nav-header {
             background-color: rgba(45, 43, 41, 0.95);
           }
+          
+          /* Articles page specific - 75% opacity on mobile */
+          .articles-page-nav {
+            background-color: rgba(255, 255, 255, 0.75) !important;
+          }
         }
       `}</style>
       {!isDetailPage && (
-        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''}`}>
+        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''}`}>
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">
               <Link href="/" className="logo-wrapper">

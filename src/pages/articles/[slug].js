@@ -655,6 +655,20 @@ export default function ArticlePage({ article }) {
               overflow-x: hidden;
               padding-left: 0;
               padding-right: 0;
+              display: block; /* Override grid on mobile */
+            }
+            
+            /* Override desktop's negative margin technique */
+            .image-column-wrapper {
+              margin-right: 0 !important;
+              padding-right: 0 !important;
+              margin-left: 0 !important;
+              padding-left: 0 !important;
+            }
+            
+            /* Hide desktop layout completely on mobile */
+            .hidden.md\:contents {
+              display: none !important;
             }
             
             /* Mobile layout container */
@@ -726,6 +740,23 @@ export default function ArticlePage({ article }) {
             .purchase-link {
               max-width: 100%;
               overflow-wrap: break-word;
+            }
+            
+            /* Global safety styles to prevent any overflow */
+            * {
+              max-width: 100vw !important;
+            }
+            
+            /* Ensure proper containment for article detail pages */
+            .article-detail-page * {
+              position: relative;
+            }
+            
+            /* Specific fix for long words */
+            h1, h2, h3, p, span, div {
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+              hyphens: auto;
             }
           }
 
@@ -1055,9 +1086,9 @@ export default function ArticlePage({ article }) {
         <div className="article-two-column-container">
           
           {/* Mobile Layout - Hidden on desktop */}
-          <div className="md:hidden px-4 pt-8">
+          <div className="md:hidden px-4 pt-8 max-w-full overflow-hidden">
             {/* Mobile Title */}
-            <h1 className="text-3xl font-light mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
+            <h1 className="text-3xl font-light mb-2 break-words">
               {article.title}
             </h1>
             
@@ -1068,14 +1099,15 @@ export default function ArticlePage({ article }) {
             
             {/* Mobile Images */}
             {allImages.length > 0 && (
-              <div className="mb-8 -mx-4">
+              <div className="mb-8 -mx-4 max-w-screen overflow-hidden">
                 <img 
                   src={urlFor(allImages[selectedImage])
                     .width(800)
                     .quality(90)
                     .url()}
                   alt={`${article.title} - Image ${selectedImage + 1}`}
-                  className="w-full mb-4"
+                  className="w-full h-auto object-contain max-w-full mb-4"
+                  style={{ maxWidth: '100vw' }}
                 />
                 {/* Thumbnails for multiple images */}
                 {allImages.length > 1 && (

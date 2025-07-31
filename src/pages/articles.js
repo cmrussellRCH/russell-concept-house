@@ -122,6 +122,13 @@ export default function ArticlesPage({ articles }) {
             transition: opacity 0.3s ease-in-out !important;
           }
           
+          /* Link wrapper styles */
+          .article-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+          }
+          
           /* CSS-only hover background effect */
           .article-row {
             position: relative;
@@ -149,6 +156,13 @@ export default function ArticlesPage({ articles }) {
           .article-row:hover::before,
           .article-row:active::before {
             opacity: 1;
+          }
+          
+          /* Additional selectors for touch interaction on mobile */
+          @media (pointer: coarse) {
+            .article-link:active .article-row::before {
+              opacity: 1;
+            }
           }
           
           .header-section {
@@ -364,9 +378,31 @@ export default function ArticlesPage({ articles }) {
             }
             
             /* Make background image show on touch for mobile */
-            .article-row:active::before {
+            .article-row:active::before,
+            .article-link:active .article-row::before {
               opacity: 1;
-              transition: opacity 0.1s ease-in-out;
+              transition: opacity 0.2s ease-in-out;
+            }
+            
+            /* Fix touch area - ensure link is proper block */
+            .article-link {
+              display: block;
+              text-decoration: none;
+              color: inherit;
+              -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Update text animations to use parent selector on mobile */
+            .article-link:active .article-title {
+              transform: translateX(5px);
+            }
+            
+            .article-link:active .article-meta {
+              opacity: 0.9;
+            }
+            
+            .article-link:active .article-arrow {
+              transform: translateX(5px);
             }
           }
           
@@ -489,17 +525,20 @@ export default function ArticlesPage({ articles }) {
           }
           
           /* Dramatic hover effects with subtle movement */
-          .article-row:hover .article-meta {
+          .article-row:hover .article-meta,
+          .article-link:active .article-meta {
             opacity: 0.5;
             transform: translateX(2px);
           }
 
-          .article-row:hover .article-title {
+          .article-row:hover .article-title,
+          .article-link:active .article-title {
             transform: translateX(6px);
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
           }
 
-          .article-row:hover .article-excerpt {
+          .article-row:hover .article-excerpt,
+          .article-link:active .article-excerpt {
             opacity: 0.9;
             transform: translateX(4px);
           }
@@ -511,7 +550,8 @@ export default function ArticlesPage({ articles }) {
             transition: all 0.3s ease 0.15s; /* Slightly after description */
           }
 
-          .article-row:hover .article-arrow {
+          .article-row:hover .article-arrow,
+          .article-link:active .article-arrow {
             opacity: 1;
             transform: translateX(0);
           }
@@ -676,7 +716,7 @@ export default function ArticlesPage({ articles }) {
                 }}
               >
                 {filteredArticles.map((article, index) => (
-                  <Link key={article._id} href={`/articles/${article.slug.current}`}>
+                  <Link key={article._id} href={`/articles/${article.slug.current}`} className="article-link">
                     <div 
                       className={`article-row ${isLoaded ? 'fonts-loaded' : ''}`}
                       style={{
