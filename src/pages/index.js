@@ -114,20 +114,8 @@ export default function Home({ articles, setTopImageUrl }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* DEPLOYMENT TEST - Remove this after confirming */}
-      <div style={{
-        background: '#ff6b6b',
-        color: 'white',
-        padding: '10px',
-        textAlign: 'center',
-        fontSize: '14px',
-        marginTop: '80px'
-      }}>
-        🚀 Deployment Test - Updated: {new Date().toLocaleString()}
-      </div>
-      
       {/* Masonry gallery grid */}
-      <div className="min-h-screen p-1 bg-gradient-to-b from-seasalt via-white to-platinum/20" ref={containerRef}>
+      <div className="min-h-screen p-1 bg-gradient-to-b from-seasalt via-white to-platinum/20" ref={containerRef} style={{ marginTop: '80px' }}>
         <div className="flex gap-1">
           {columns.map((column, columnIndex) => (
             <div key={columnIndex} className="flex-1 flex flex-col gap-1">
