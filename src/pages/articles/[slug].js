@@ -1115,7 +1115,7 @@ export default function ArticlePage({ article }) {
         <div className="article-two-column-container">
           
           {/* Mobile Layout - Hidden on desktop */}
-          <div className="md:hidden px-4 pt-8 max-w-full overflow-hidden">
+          <div className="md:hidden px-4 pt-6 max-w-full overflow-hidden">
             {/* Mobile Title */}
             <h1 className="text-3xl font-light mb-2 break-words">
               {article.title}
@@ -1184,7 +1184,7 @@ export default function ArticlePage({ article }) {
               
               {/* Share Section */}
               <div className="share-section mt-16 pt-8 border-t border-gray-300">
-                <div className="flex items-center justify-center gap-6">
+                <div className="flex items-center justify-start gap-6">
                   {/* Instagram */}
                   <button 
                     onClick={() => shareToInstagram(window.location.href)}
@@ -1302,7 +1302,7 @@ export default function ArticlePage({ article }) {
             
             {/* Share Section - Desktop */}
             <div className="share-section mt-16 pt-8 border-t border-gray-300">
-              <div className="flex items-center justify-center gap-6">
+              <div className="flex items-center justify-start gap-6">
                 {/* Instagram */}
                 <button 
                   onClick={() => shareToInstagram(window.location.href)}
