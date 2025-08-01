@@ -301,11 +301,6 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
             background-color: rgba(45, 43, 41, 0.95);
           }
           
-          /* Conversations page specific mobile nav */
-          .conversations-page.mobile-nav-header {
-            background-color: rgba(45, 43, 41, 0.95) !important;
-          }
-          
           /* Articles page specific - 75% opacity on mobile */
           .articles-page-nav {
             background-color: rgba(255, 255, 255, 0.75) !important;
@@ -315,7 +310,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
         }
       `}</style>
       {!isDetailPage && (
-        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isConversationsPage ? 'conversations-page' : ''}`}>
+        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''}`}>
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">
               <Link href="/" className="logo-wrapper">
