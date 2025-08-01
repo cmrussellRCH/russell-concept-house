@@ -294,6 +294,11 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
             background-color: rgba(45, 43, 41, 0.95);
           }
           
+          /* Conversations page specific mobile nav */
+          .conversations-page .mobile-nav-header {
+            background-color: rgba(45, 43, 41, 0.95) !important;
+          }
+          
           /* Articles page specific - 75% opacity on mobile */
           .articles-page-nav {
             background-color: rgba(255, 255, 255, 0.75) !important;
