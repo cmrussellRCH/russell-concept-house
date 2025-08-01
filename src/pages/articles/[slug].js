@@ -1115,7 +1115,7 @@ export default function ArticlePage({ article }) {
         <div className="article-two-column-container">
           
           {/* Mobile Layout - Hidden on desktop */}
-          <div className="md:hidden px-4 pt-5 max-w-full overflow-hidden">
+          <div className="md:hidden px-4 pt-3 max-w-full overflow-hidden">
             {/* Mobile Title */}
             <h1 className="text-3xl font-light mb-2 break-words">
               {article.title}
