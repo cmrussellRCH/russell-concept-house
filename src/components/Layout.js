@@ -298,7 +298,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           
           /* Dark mode mobile nav */
           .dark-page .mobile-nav-header {
-            background-color: rgba(45, 43, 41, 0.95);
+            background-color: rgba(45, 43, 41, 0.95) !important;
           }
           
           /* Articles page specific - 75% opacity on mobile */
