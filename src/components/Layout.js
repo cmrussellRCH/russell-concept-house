@@ -21,6 +21,11 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Ensure mobile menu is closed on route change
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [router.pathname])
+
   // Analyze image brightness when top image changes
   useEffect(() => {
     if (topImageUrl && isHomePage) {
@@ -207,11 +212,13 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           visibility: hidden;
           transition: all 0.3s ease;
           z-index: 998;
+          pointer-events: none;
         }
         
         .mobile-menu-overlay.active {
           opacity: 1;
           visibility: visible;
+          pointer-events: auto;
         }
         
         /* Mobile Menu */

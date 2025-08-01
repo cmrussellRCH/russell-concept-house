@@ -197,6 +197,7 @@ export default function ConversationsPage({ conversations }) {
             color: #f7f5f3 !important;
           }
 
+
           /* ===== RESPONSIVE ===== */
           @media (max-width: 768px) {
             .conversation-row {
