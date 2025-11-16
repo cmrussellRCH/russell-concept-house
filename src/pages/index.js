@@ -58,24 +58,20 @@ export default function Home({ articles, setTopImageUrl }) {
     return () => window.removeEventListener('resize', updateColumnCount)
   }, [])
 
-  // Load images and track their dimensions
+  // Use intrinsic dimensions from Sanity metadata when available to avoid client-side preload measurements
   useEffect(() => {
+    const dimensions = {}
     articles.forEach((article) => {
-      if (article.mainImage?.asset) {
-        const img = new Image()
-        img.onload = () => {
-          setLoadedImages(prev => ({
-            ...prev,
-            [article._id]: {
-              width: img.width,
-              height: img.height,
-              aspectRatio: img.height / img.width
-            }
-          }))
+      const dims = article.mainImage?.asset?.metadata?.dimensions
+      if (dims?.width && dims?.height) {
+        dimensions[article._id] = {
+          width: dims.width,
+          height: dims.height,
+          aspectRatio: dims.height / dims.width
         }
-        img.src = urlFor(article.mainImage).width(800).url()
       }
     })
+    setLoadedImages(dimensions)
   }, [articles])
 
   // Distribute articles into columns using a balanced approach
