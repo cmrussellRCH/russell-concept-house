@@ -80,7 +80,8 @@ export async function getArticles(limit = null) {
           asset-> {
             _id,
             url,
-            source
+            source,
+            metadata { dimensions }
           }
         }
       }`
@@ -97,7 +98,8 @@ export async function getArticles(limit = null) {
           asset-> {
             _id,
             url,
-            source
+            source,
+            metadata { dimensions }
           }
         }
       }`
