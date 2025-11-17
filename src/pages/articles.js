@@ -792,11 +792,12 @@ export default function ArticlesPage({ articles }) {
 export async function getStaticProps() {
   try {
     const articles = await getArticles()
-    
+
     return {
       props: {
         articles: articles || []
-      }
+      },
+      revalidate: 60
     }
   } catch (error) {
     console.error('Error fetching articles:', error)

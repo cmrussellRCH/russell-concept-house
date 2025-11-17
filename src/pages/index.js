@@ -197,8 +197,8 @@ export async function getStaticProps() {
     return {
       props: {
         articles: articles || []
-      }
-      // Note: revalidate removed for static export
+      },
+      revalidate: 60
     }
   } catch (error) {
     console.error('Error fetching articles:', error)

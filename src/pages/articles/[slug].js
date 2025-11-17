@@ -1467,13 +1467,13 @@ export async function getStaticPaths() {
 
     return {
       paths,
-      fallback: false
+      fallback: 'blocking'
     }
   } catch (error) {
     console.error('Error generating paths:', error)
     return {
       paths: [],
-      fallback: false
+      fallback: 'blocking'
     }
   }
 }
@@ -1491,12 +1491,14 @@ export async function getStaticProps({ params }) {
     return {
       props: {
         article
-      }
+      },
+      revalidate: 60
     }
   } catch (error) {
     console.error('Error fetching article:', error)
     return {
-      notFound: true
+      notFound: true,
+      revalidate: 60
     }
   }
 }

@@ -312,14 +312,16 @@ export async function getStaticProps() {
     return {
       props: {
         conversations: conversations || []
-      }
+      },
+      revalidate: 60
     }
   } catch (error) {
     console.error('Error fetching conversations:', error)
     return {
       props: {
         conversations: []
-      }
+      },
+      revalidate: 60
     }
   }
 }
