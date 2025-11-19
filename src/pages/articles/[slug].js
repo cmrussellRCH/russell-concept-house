@@ -188,11 +188,32 @@ export default function ArticlePage({ article }) {
       
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const canonicalUrl = `${siteUrl}/articles/${article.slug.current}`
+  const pageTitle = `${article.title} | Russell Concept House`
+  const pageDescription = article.excerpt || article.title
+
   return (
+
     <div className={isVideoProfile ? 'video-profile article-detail-page' : 'article-detail-page'}>
         <Head>
-          <title>{article.title} - Russell Concept House</title>
-          <meta name="description" content={article.excerpt || article.title} />
+          <title>{pageTitle}</title>
+          <meta name="description" content={pageDescription} />
+          <link rel="canonical" href={canonicalUrl} />
+          <meta property="og:type" content="article" />
+          <meta property="og:site_name" content="Russell Concept House" />
+          <meta property="og:title" content={pageTitle} />
+          <meta property="og:description" content={pageDescription} />
+          <meta property="og:url" content={canonicalUrl} />
+          {article.mainImage?.asset?.url && (
+            <meta property="og:image" content={article.mainImage.asset.url} />
+          )}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={pageTitle} />
+          <meta name="twitter:description" content={pageDescription} />
+          {article.mainImage?.asset?.url && (
+            <meta name="twitter:image" content={article.mainImage.asset.url} />
+          )}
           <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
           

@@ -32,11 +32,24 @@ export default function About() {
     }
   ]
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const pageTitle = 'About Russell Concept House'
+  const pageDescription = 'Russell Concept House curates objects that balance timeless beauty with thoughtful functionality, supporting designers who honor craftsmanship and innovation.'
+
   return (
     <>
       <Head>
-        <title>About - Russell Concept House</title>
-        <meta name="description" content="Learn about Russell Concept House and our mission to curate thoughtful design" />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={`${siteUrl}/about`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Russell Concept House" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={`${siteUrl}/about`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Playfair+Display:wght@300;400&display=swap');
           

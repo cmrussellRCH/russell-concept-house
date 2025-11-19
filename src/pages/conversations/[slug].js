@@ -86,11 +86,32 @@ export default function ConversationPage({ conversation }) {
     })
   }
   
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const canonicalUrl = `${siteUrl}/conversations/${conversation.slug.current}`
+  const pageTitle = `${conversation.title} | Russell Concept House`
+  const pageDescription = conversation.excerpt || `Watch the conversation with ${conversationName} curated by Russell Concept House.`
+
   return (
+
     <div className="conversation-detail-page">
         <Head>
-          <title>{conversation.title} - Russell Concept House</title>
-          <meta name="description" content={conversation.excerpt || conversation.title} />
+          <title>{pageTitle}</title>
+          <meta name="description" content={pageDescription} />
+          <link rel="canonical" href={canonicalUrl} />
+          <meta property="og:type" content="video.other" />
+          <meta property="og:site_name" content="Russell Concept House" />
+          <meta property="og:title" content={pageTitle} />
+          <meta property="og:description" content={pageDescription} />
+          <meta property="og:url" content={canonicalUrl} />
+          {conversation.mainImage?.asset?.url && (
+            <meta property="og:image" content={conversation.mainImage.asset.url} />
+          )}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={pageTitle} />
+          <meta name="twitter:description" content={pageDescription} />
+          {conversation.mainImage?.asset?.url && (
+            <meta name="twitter:image" content={conversation.mainImage.asset.url} />
+          )}
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
             

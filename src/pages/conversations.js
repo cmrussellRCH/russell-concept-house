@@ -7,11 +7,24 @@ import Layout from '../components/Layout'
 export default function ConversationsPage({ conversations }) {
   const conversationCount = conversations.length
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const pageTitle = 'Conversations | Russell Concept House'
+  const pageDescription = 'Watch in-depth video conversations with designers and makers curated by Russell Concept House.'
+
   return (
     <>
       <Head>
-        <title>Conversations - Russell Concept House</title>
-        <meta name="description" content="Video conversations with designers and makers" />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={`${siteUrl}/conversations`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Russell Concept House" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={`${siteUrl}/conversations`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
         <style>{`
           /* ===== CONVERSATIONS LISTING PAGE ===== */
           /* Ensure full page dark background */
