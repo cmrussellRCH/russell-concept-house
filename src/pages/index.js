@@ -101,11 +101,24 @@ export default function Home({ articles, setTopImageUrl }) {
 
   const columns = distributeArticles()
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const pageTitle = 'Russell Concept House | Curated Objects & Lighting'
+  const pageDescription = 'Russell Concept House curates objects from the world’s leading designers, blending timeless beauty with thoughtful function to elevate everyday life.'
+
   return (
     <>
       <Head>
-        <title>Russell Concept House</title>
-        <meta name="description" content="Contemporary design and artisanal objects" />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={siteUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Russell Concept House" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={siteUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

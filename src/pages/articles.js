@@ -48,10 +48,24 @@ export default function ArticlesPage({ articles }) {
     return title.toUpperCase()
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
+  const pageTitle = 'Articles | Russell Concept House'
+  const pageDescription = 'Explore 100+ curated articles featuring lighting, objects, and designers highlighted by Russell Concept House.'
+
   return (
     <>
       <Head>
-        <title>Articles - Russell Concept House</title>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={`${siteUrl}/articles`} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Russell Concept House" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={`${siteUrl}/articles`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
         <style>{`
           /* Critical layout styles - must load immediately */
           .articles-grid {
