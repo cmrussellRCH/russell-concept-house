@@ -1,41 +1,10 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState } from 'react'
 
 export default function About() {
-  const [hoveredFriend, setHoveredFriend] = useState(null)
-
-  const friends = [
-    {
-      id: 1,
-      name: "Studio Loft",
-      category: "Architecture",
-      description: "Minimalist architectural design",
-      link: "#",
-      image: "/api/placeholder/400/600"
-    },
-    {
-      id: 2,
-      name: "Forma Objects",
-      category: "Ceramics",
-      description: "Handcrafted ceramic vessels",
-      link: "#",
-      image: "/api/placeholder/400/600"
-    },
-    {
-      id: 3,
-      name: "Thread Works",
-      category: "Textiles",
-      description: "Natural fiber textiles",
-      link: "#",
-      image: "/api/placeholder/400/600"
-    }
-  ]
-
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'About Russell Concept House'
   const pageDescription = 'Russell Concept House curates objects that balance timeless beauty with thoughtful functionality, supporting designers who honor craftsmanship and innovation.'
-
   return (
     <>
       <Head>
@@ -94,7 +63,11 @@ export default function About() {
           }
           
           .content-section {
-            padding: 3rem 0;
+            padding: 4.5rem 0;
+          }
+
+          .content-section--spaced {
+            padding-top: 6rem;
           }
           
           .section-title {
@@ -161,56 +134,6 @@ export default function About() {
             font-size: 0.95rem;
           }
           
-          .friends-section {
-            background: #fafafa;
-            padding: 3rem 0;
-          }
-          
-          .friends-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-          }
-          
-          .friend-card {
-            background: white;
-            padding: 1.5rem;
-            transition: all 0.3s cubic-bezier(0.43, 0.13, 0.23, 0.96);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-          }
-          
-          .friend-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-          }
-          
-          .friend-category {
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-            font-family: 'Inter', sans-serif;
-          }
-          
-          .friend-name {
-            font-size: 1.25rem;
-            font-weight: 300;
-            margin-bottom: 0.5rem;
-            font-family: 'Playfair Display', serif;
-          }
-          
-          .friend-description {
-            font-size: 0.875rem;
-            color: #666;
-            margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
-            font-weight: 300;
-          }
-          
           .friend-link {
             font-size: 0.75rem;
             color: #000;
@@ -270,7 +193,7 @@ export default function About() {
       
 
       {/* About Us */}
-      <section className="content-section" style={{ background: '#fafafa', paddingTop: '8rem' }}>
+      <section className="content-section" style={{ background: '#fafafa', padding: '11rem 0 4rem' }}>
         <div className="container-custom">
           <h2 className="section-title">About Us</h2>
           <div className="story-grid">
@@ -290,7 +213,7 @@ export default function About() {
       </section>
 
       {/* Our Values */}
-      <section className="content-section" style={{ background: '#fafafa' }}>
+      <section className="content-section" style={{ background: '#fafafa', padding: '3.5rem 0 4rem' }}>
         <div className="container-custom">
           <h2 className="section-title">Our Values</h2>
           <div className="values-grid">
@@ -319,35 +242,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* Our Friends */}
-      <section className="friends-section">
-        <div className="container-custom">
-          <h2 className="section-title">Our Friends</h2>
-          <p className="text-dim-gray mb-8 max-w-2xl" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: '0.9rem' }}>
-            Collaborators and partners who share our vision.
-          </p>
-          <div className="friends-grid">
-            {friends.map((friend) => (
-              <div
-                key={friend.id}
-                className="friend-card"
-                onMouseEnter={() => setHoveredFriend(friend.id)}
-                onMouseLeave={() => setHoveredFriend(null)}
-              >
-                <div className="friend-category">{friend.category}</div>
-                <h3 className="friend-name">{friend.name}</h3>
-                <p className="friend-description">{friend.description}</p>
-                <a href={friend.link} className="friend-link">
-                  Visit
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Removed Our Friends section */}
 
       {/* Get in Touch */}
       <section className="contact-section">
