@@ -6,17 +6,7 @@
     "dev": "next dev -p 3002",
     "build": "next build",
     "start": "next start -p $PORT",
-    "lint": "next lint",
-    "migrate-wix": "node src/scripts/migrate-wix-content.js",
-    "scrape-rss": "node src/scripts/scrape-wix-rss.js",
-    "scrape-blog": "node src/scripts/scrape-wix-blog-pages.js",
-    "scrape-complete": "node src/scripts/scrape-wix-complete.js",
-    "combine-posts": "node src/scripts/combine-all-posts.js",
-    "scrape-sitemap": "node src/scripts/scrape-sitemap-posts.js",
-    "import-to-sanity": "node src/scripts/import-to-sanity.js",
-    "import-fixed": "node src/scripts/import-to-sanity-fixed.js",
-    "import-html": "node src/scripts/import-from-html-backup.js",
-    "delete-articles": "node delete-all-articles.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@sanity/block-tools": "^3.70.0",

@@ -4,7 +4,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const secret = req.query.secret
+  const headerSecret = req.headers['x-revalidate-secret']
+  const secret = headerSecret || req.query.secret
   if (!secret || secret !== process.env.REVALIDATE_SECRET) {
     return res.status(401).json({ message: 'Invalid secret' })
   }
