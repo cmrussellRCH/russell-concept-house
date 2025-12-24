@@ -134,6 +134,16 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
           border-color: #b42318;
           color: #fff;
         }
+        .admin-button.primary {
+          background: #1f5b3b;
+          border-color: #1f5b3b;
+          color: #fff;
+        }
+        .admin-button.warning {
+          background: #b2810a;
+          border-color: #b2810a;
+          color: #fff;
+        }
         .admin-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
@@ -278,6 +288,10 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
           font-size: 0.6rem;
           letter-spacing: 0.12em;
           text-transform: uppercase;
+        }
+        .admin-badge.warning {
+          background: rgba(244, 200, 75, 0.25);
+          color: #6b4f00;
         }
         .admin-image-grid {
           display: grid;

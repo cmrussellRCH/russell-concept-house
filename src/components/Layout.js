@@ -448,7 +448,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
                   Contact
                 </Link>
                 <Link href="/admin/login" className={`text-sm transition-colors ${isDarkPage ? 'text-white/60 hover:text-white' : 'text-dim-gray hover:text-black-olive'}`}>
-                  Log In
+                  Admin
                 </Link>
               </div>
             </div>
