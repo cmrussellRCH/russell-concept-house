@@ -27,8 +27,9 @@ export default function Home({ articles, setTopImageUrl }) {
           if (rect.bottom > 0 && distance < minDistance) {
             minDistance = distance
             const article = articles.find(a => a._id === articleId)
-            if (article?.mainImage?.asset) {
-              topImage = urlFor(article.mainImage).width(800).url()
+            const mainImageSource = article?.mainImagePublicId || article?.mainImage
+            if (mainImageSource) {
+              topImage = urlFor(mainImageSource).width(800).url()
             }
           }
         }
@@ -129,7 +130,8 @@ export default function Home({ articles, setTopImageUrl }) {
           {columns.map((column, columnIndex) => (
             <div key={columnIndex} className="flex-1 flex flex-col gap-1">
               {column.map((article, index) => {
-                const hasImage = article.mainImage?.asset
+                const mainImageSource = article.mainImagePublicId || article.mainImage
+                const hasImage = Boolean(mainImageSource)
                 const imageData = loadedImages[article._id]
                 const aspectRatio = imageData?.aspectRatio || 1.5
                 
@@ -149,7 +151,7 @@ export default function Home({ articles, setTopImageUrl }) {
                         <>
                           <img
                             ref={el => imageRefs.current[article._id] = el}
-                            src={urlFor(article.mainImage)
+                            src={urlFor(mainImageSource)
                               .width(800)
                               .quality(85)
                               .url()}

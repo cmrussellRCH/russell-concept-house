@@ -45,7 +45,20 @@ export default {
       options: {
         hotspot: true
       },
-      validation: Rule => Rule.required()
+      validation: Rule => Rule.custom((value, context) => {
+        if (value || context.document?.mainImagePublicId) return true
+        return 'Main image or Cloudinary public ID is required'
+      })
+    },
+    {
+      name: 'mainImagePublicId',
+      title: 'Main Image Cloudinary Public ID',
+      type: 'string',
+      description: 'Preferred for new articles (example: folder/asset_public_id)',
+      validation: Rule => Rule.custom((value, context) => {
+        if (value || context.document?.mainImage) return true
+        return 'Main image or Cloudinary public ID is required'
+      })
     },
     {
       name: 'excerpt',
@@ -167,6 +180,14 @@ export default {
       ],
       hidden: ({ document }) => document?.mediaType === 'video',
       description: 'Additional images for the article'
+    },
+    {
+      name: 'galleryPublicIds',
+      title: 'Image Gallery Cloudinary Public IDs',
+      type: 'array',
+      of: [{ type: 'string' }],
+      hidden: ({ document }) => document?.mediaType === 'video',
+      description: 'Preferred for new articles (Cloudinary public IDs)'
     },
     {
       name: 'tags',

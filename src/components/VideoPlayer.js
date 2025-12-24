@@ -1,21 +1,30 @@
 import { useState } from 'react'
 import { urlFor } from '../lib/sanity.client'
 
-export default function VideoPlayer({ article, videoId }) {
+export default function VideoPlayer({ article, image, videoId, videoUrl }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const resolvedImage = image || article?.mainImagePublicId || article?.mainImage
+  const resolvedVideoId = videoId || getYouTubeId(videoUrl || article?.videoUrl)
   
   const handlePlay = () => {
     setIsPlaying(true)
+  }
+
+  function getYouTubeId(url) {
+    if (!url) return null
+    const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^\"&?/ ]{11})/
+    const match = url.match(regex)
+    return match ? match[1] : null
   }
   
   return (
     <div className="video-player-container">
       {!isPlaying ? (
         <div className="custom-thumbnail" onClick={handlePlay}>
-          {article.mainImage && (
+          {resolvedImage && (
             <img 
-              src={urlFor(article.mainImage).width(1200).url()} 
-              alt={article.title}
+              src={urlFor(resolvedImage).width(1200).url()} 
+              alt={article?.title || 'Video thumbnail'}
               className="thumbnail-image"
               loading="lazy"
             />
@@ -29,7 +38,7 @@ export default function VideoPlayer({ article, videoId }) {
         </div>
       ) : (
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&vq=hd2160&hd=1`}
+          src={`https://www.youtube.com/embed/${resolvedVideoId}?autoplay=1&rel=0&modestbranding=1&vq=hd2160&hd=1`}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

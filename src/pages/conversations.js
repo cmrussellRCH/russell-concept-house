@@ -242,18 +242,21 @@ export default function ConversationsPage({ conversations }) {
       <div className="conversations-page">
         <div className="conversations-container">
           <div className="conversations-list">
-            {conversations.map((article, index) => (
-              <Link href={`/conversations/${article.slug.current}`} key={article._id}>
-                <div className="conversation-row">
+            {conversations.map((article, index) => {
+              const mainImageSource = article.mainImagePublicId || article.mainImage
+
+              return (
+                <Link href={`/conversations/${article.slug.current}`} key={article._id}>
+                  <div className="conversation-row">
                   <div className="row-number">
                     {String(index + 1).padStart(2, '0')}
                   </div>
                   
                   <div className="row-content">
                     <div className="conversation-image">
-                      {article.mainImage && (
+                      {mainImageSource && (
                         <img 
-                          src={urlFor(article.mainImage).width(560).height(360).quality(90).url()} 
+                          src={urlFor(mainImageSource).width(560).height(360).quality(90).url()} 
                           alt={article.title}
                           loading="lazy"
                           width="280"
@@ -281,9 +284,10 @@ export default function ConversationsPage({ conversations }) {
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                  </div>
+                </Link>
+              )
+            })}
           </div>
           
           <footer className="conversations-footer">
@@ -308,6 +312,7 @@ export async function getStaticProps() {
         _id,
         title,
         slug,
+        mainImagePublicId,
         mainImage {
           asset-> {
             _id,

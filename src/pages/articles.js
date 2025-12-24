@@ -729,16 +729,19 @@ export default function ArticlesPage({ articles }) {
                   margin: '0 auto'
                 }}
               >
-                {filteredArticles.map((article, index) => (
-                  <Link key={article._id} href={`/articles/${article.slug.current}`} className="article-link">
-                    <div 
-                      className={`article-row ${isLoaded ? 'fonts-loaded' : ''}`}
-                      style={{
-                        '--bg-image': article.mainImage?.asset 
-                          ? `url(${urlFor(article.mainImage).width(1200).blur(27).url()})` 
-                          : 'none'
-                      }}
-                    >
+                {filteredArticles.map((article, index) => {
+                  const mainImageSource = article.mainImagePublicId || article.mainImage
+
+                  return (
+                    <Link key={article._id} href={`/articles/${article.slug.current}`} className="article-link">
+                      <div 
+                        className={`article-row ${isLoaded ? 'fonts-loaded' : ''}`}
+                        style={{
+                          '--bg-image': mainImageSource
+                            ? `url(${urlFor(mainImageSource).width(1200).blur(27).url()})`
+                            : 'none'
+                        }}
+                      >
                       <div className="article-inner">
                         <span className="article-number">
                           {String(index + 1).padStart(2, '0')}
@@ -785,9 +788,10 @@ export default function ArticlesPage({ articles }) {
                           <path d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
 
               {/* Counter */}

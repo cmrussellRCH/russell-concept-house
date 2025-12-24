@@ -12,52 +12,67 @@ export const client = createClient({
 // Image URL builder
 const builder = imageUrlBuilder(client)
 
-export function urlFor(source) {
-  // Check if it's a Cloudinary image
-  if (source?.asset?.url && isCloudinaryUrl(source.asset.url)) {
-    // Return a proxy object that mimics Sanity's image builder API
-    return {
-      width: (w) => ({ 
-        height: (h) => ({ 
-          quality: (q) => ({ 
-            blur: (b) => ({
-              url: () => getOptimizedImageUrl(source, { width: w, height: h, quality: q, e_blur: b })
-            }),
-            url: () => getOptimizedImageUrl(source, { width: w, height: h, quality: q })
-          }),
-          blur: (b) => ({
-            url: () => getOptimizedImageUrl(source, { width: w, height: h, e_blur: b })
-          }),
-          url: () => getOptimizedImageUrl(source, { width: w, height: h })
-        }),
-        quality: (q) => ({ 
-          blur: (b) => ({
-            url: () => getOptimizedImageUrl(source, { width: w, quality: q, e_blur: b })
-          }),
-          url: () => getOptimizedImageUrl(source, { width: w, quality: q })
-        }),
-        blur: (b) => ({
-          url: () => getOptimizedImageUrl(source, { width: w, e_blur: b })
-        }),
-        url: () => getOptimizedImageUrl(source, { width: w })
-      }),
+function buildCloudinaryProxy(source) {
+  const getUrl = (options = {}) => getOptimizedImageUrl(source, options)
+
+  return {
+    width: (w) => ({ 
       height: (h) => ({ 
         quality: (q) => ({ 
-          url: () => getOptimizedImageUrl(source, { height: h, quality: q })
+          blur: (b) => ({
+            url: () => getUrl({ width: w, height: h, quality: q, e_blur: b })
+          }),
+          url: () => getUrl({ width: w, height: h, quality: q })
         }),
-        url: () => getOptimizedImageUrl(source, { height: h })
+        blur: (b) => ({
+          url: () => getUrl({ width: w, height: h, e_blur: b })
+        }),
+        url: () => getUrl({ width: w, height: h })
       }),
       quality: (q) => ({ 
         blur: (b) => ({
-          url: () => getOptimizedImageUrl(source, { quality: q, e_blur: b })
+          url: () => getUrl({ width: w, quality: q, e_blur: b })
         }),
-        url: () => getOptimizedImageUrl(source, { quality: q })
+        url: () => getUrl({ width: w, quality: q })
       }),
       blur: (b) => ({
-        url: () => getOptimizedImageUrl(source, { e_blur: b })
+        url: () => getUrl({ width: w, e_blur: b })
       }),
-      url: () => getOptimizedImageUrl(source)
-    };
+      url: () => getUrl({ width: w })
+    }),
+    height: (h) => ({ 
+      quality: (q) => ({ 
+        url: () => getUrl({ height: h, quality: q })
+      }),
+      url: () => getUrl({ height: h })
+    }),
+    quality: (q) => ({ 
+      blur: (b) => ({
+        url: () => getUrl({ quality: q, e_blur: b })
+      }),
+      url: () => getUrl({ quality: q })
+    }),
+    blur: (b) => ({
+      url: () => getUrl({ e_blur: b })
+    }),
+    url: () => getUrl()
+  }
+}
+
+export function urlFor(source) {
+  if (!source) return { url: () => null }
+
+  if (typeof source === 'string') {
+    return buildCloudinaryProxy(source)
+  }
+
+  if (source?.cloudinaryPublicId) {
+    return buildCloudinaryProxy(source.cloudinaryPublicId)
+  }
+
+  // Check if it's a Cloudinary image
+  if (source?.asset?.url && isCloudinaryUrl(source.asset.url)) {
+    return buildCloudinaryProxy(source)
   }
   
   // Use Sanity's image builder for non-Cloudinary images
@@ -67,7 +82,7 @@ export function urlFor(source) {
 // Query helpers
 export async function getArticles(limit = null) {
   const query = limit 
-    ? `*[_type == "article"] | order(defined(mainImage) desc, publishedAt desc) [0..${limit-1}] {
+    ? `*[_type == "article"] | order((defined(mainImage) || defined(mainImagePublicId)) desc, publishedAt desc) [0..${limit-1}] {
         _id,
         title,
         slug,
@@ -76,6 +91,7 @@ export async function getArticles(limit = null) {
         category,
         author,
         mediaType,
+        mainImagePublicId,
         mainImage {
           asset-> {
             _id,
@@ -85,7 +101,7 @@ export async function getArticles(limit = null) {
           }
         }
       }`
-    : `*[_type == "article"] | order(defined(mainImage) desc, publishedAt desc) {
+    : `*[_type == "article"] | order((defined(mainImage) || defined(mainImagePublicId)) desc, publishedAt desc) {
         _id,
         title,
         slug,
@@ -94,6 +110,7 @@ export async function getArticles(limit = null) {
         category,
         author,
         mediaType,
+        mainImagePublicId,
         mainImage {
           asset-> {
             _id,
@@ -119,6 +136,8 @@ export async function getArticleBySlug(slug) {
     author->{
       name
     },
+    mainImagePublicId,
+    galleryPublicIds,
     mainImage {
       asset-> {
         _id,
