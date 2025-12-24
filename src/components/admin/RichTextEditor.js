@@ -15,6 +15,7 @@ export default function RichTextEditor({ id, value, onChange, placeholder }) {
     const editor = editorRef.current
     if (!editor) return
     editor.focus()
+    document.execCommand('styleWithCSS', false, false)
     document.execCommand(command, false, commandValue)
     if (onChange) {
       onChange(editor.innerHTML)

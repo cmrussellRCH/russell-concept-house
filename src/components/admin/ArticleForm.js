@@ -43,6 +43,8 @@ export default function ArticleForm({
       publishedAt: publishedAt || toDateTimeLocal(),
       author: initialArticle?.author || 'Russell Concept House',
       bodyHtml: portableTextToHtml(initialArticle?.body || []),
+      availableAtLabel: initialArticle?.availableAtLabel || 'Available At',
+      availableAtUrl: initialArticle?.availableAtUrl || '',
       mediaType: initialArticle?.mediaType || 'images',
       videoUrl: initialArticle?.videoUrl || '',
       videoDuration: initialArticle?.videoDuration || '',
@@ -429,6 +431,31 @@ export default function ArticleForm({
             placeholder="lighting, interiors, sculptural"
           />
           <p className="admin-note">Comma-separated tags.</p>
+        </div>
+      </div>
+
+      <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="availableAtLabel">Available At Button Label</label>
+          <input
+            id="availableAtLabel"
+            className="admin-input"
+            value={form.availableAtLabel}
+            onChange={(event) => setForm({ ...form, availableAtLabel: event.target.value })}
+            placeholder="Available At"
+          />
+        </div>
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="availableAtUrl">Available At URL</label>
+          <input
+            id="availableAtUrl"
+            className="admin-input"
+            type="url"
+            value={form.availableAtUrl}
+            onChange={(event) => setForm({ ...form, availableAtUrl: event.target.value })}
+            placeholder="https://"
+          />
+          <p className="admin-note">Shows the button when a URL is provided.</p>
         </div>
       </div>
 

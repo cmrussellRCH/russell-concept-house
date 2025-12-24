@@ -138,6 +138,8 @@ export async function getArticleBySlug(slug) {
     },
     mainImagePublicId,
     galleryPublicIds,
+    availableAtLabel,
+    availableAtUrl,
     mainImage {
       asset-> {
         _id,

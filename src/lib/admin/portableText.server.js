@@ -45,6 +45,14 @@ function parseInlineNodes(node, markDefs, activeMarks) {
     nextMarks = addMark(activeMarks, 'strong')
   } else if (tag === 'I' || tag === 'EM') {
     nextMarks = addMark(activeMarks, 'em')
+  } else if (tag === 'SPAN') {
+    const style = node.getAttribute('style') || ''
+    if (/font-weight:\s*(bold|[5-9]00)/i.test(style)) {
+      nextMarks = addMark(nextMarks, 'strong')
+    }
+    if (/font-style:\s*italic/i.test(style)) {
+      nextMarks = addMark(nextMarks, 'em')
+    }
   } else if (tag === 'A') {
     const href = node.getAttribute('href')
     if (href) {
@@ -76,6 +84,19 @@ function buildBlock(node, style) {
   return {
     _type: 'block',
     style,
+    markDefs,
+    children
+  }
+}
+
+function buildInlineBlock(node) {
+  const markDefs = []
+  const children = parseInlineNodes(node, markDefs, [])
+  const hasContent = children.some(child => child.text && child.text.trim() !== '')
+  if (!hasContent) return null
+  return {
+    _type: 'block',
+    style: 'normal',
     markDefs,
     children
   }
@@ -114,6 +135,12 @@ function nodesToBlocks(nodes) {
         return
       }
       const block = buildBlock(node, 'normal')
+      if (block) blocks.push(block)
+      return
+    }
+
+    if (INLINE_TAGS.has(tag)) {
+      const block = buildInlineBlock(node)
       if (block) blocks.push(block)
       return
     }

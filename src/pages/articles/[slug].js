@@ -68,30 +68,7 @@ export default function ArticlePage({ article }) {
     }
   }
 
-  // Extract purchase link from content
-  const extractPurchaseLink = (content) => {
-    if (!content) return null
-    
-    for (const block of content) {
-      if (block._type === 'block' && block.children) {
-        for (const child of block.children) {
-          if (!child?.text) continue
-          const linkMark = block.markDefs?.find(mark => 
-            mark._type === 'link' && child.marks?.includes(mark._key)
-          )
-          if (linkMark?.href) {
-            return {
-              url: linkMark.href,
-              text: child.text
-            }
-          }
-        }
-      }
-    }
-    return null
-  }
-
-  const renderContent = (content, purchaseLink) => {
+  const renderContent = (content) => {
     if (!content) return null
     
     return content.map((block, index) => {
@@ -101,9 +78,6 @@ export default function ArticlePage({ article }) {
           const linkMark = block.markDefs?.find(mark => 
             mark._type === 'link' && child.marks?.includes(mark._key)
           )
-          if (purchaseLink && linkMark?.href === purchaseLink.url) {
-            return null
-          }
 
           let node = child.text
           const marks = Array.isArray(child.marks) ? child.marks : []
@@ -180,7 +154,8 @@ export default function ArticlePage({ article }) {
   ].filter(Boolean)
 
   const { productName, brandName } = parseTitle(article.title)
-  const purchaseLink = extractPurchaseLink(article.body)
+  const availableAtUrl = article.availableAtUrl || ''
+  const availableAtLabel = article.availableAtLabel || 'Available At'
   
   // Video profile setup
   const isVideoProfile = article?.mediaType === 'video' && article?.videoUrl
@@ -505,6 +480,17 @@ export default function ArticlePage({ article }) {
             margin-bottom: 1.5rem;
             font-family: 'Inter', sans-serif;
             font-weight: 300;
+          }
+
+          .paragraph strong,
+          .paragraph b {
+            font-weight: 600;
+          }
+
+          .paragraph a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 3px;
           }
           
           .purchase-section {
@@ -1148,7 +1134,7 @@ export default function ArticlePage({ article }) {
           {/* Video Description */}
           {article.body && (
             <section className="video-description">
-              {renderContent(article.body, purchaseLink)}
+              {renderContent(article.body)}
             </section>
           )}
           
@@ -1208,16 +1194,15 @@ export default function ArticlePage({ article }) {
             {/* Mobile Body Text */}
             <div className="article-content">
               {article.body ? (
-                renderContent(article.body, purchaseLink)
+                renderContent(article.body)
               ) : (
                 <p className="text-dim-gray">Content coming soon...</p>
               )}
               
-              {purchaseLink && (
+              {availableAtUrl && (
                 <div className="purchase-section">
-                  <a href={purchaseLink.url} className="purchase-link" target="_blank" rel="noopener noreferrer">
-                    <span className="purchase-text">Available at</span>
-                    <span className="brand-name">{brandName || purchaseLink.text}</span>
+                  <a href={availableAtUrl} className="purchase-link" target="_blank" rel="noopener noreferrer">
+                    <span className="purchase-text">{availableAtLabel}</span>
                     <svg className="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M7 7h10v10M7 17L17 7"/>
                     </svg>
@@ -1325,17 +1310,16 @@ export default function ArticlePage({ article }) {
             {/* Article Body */}
             <div className="article-body">
               {article.body ? (
-                renderContent(article.body, purchaseLink)
+                renderContent(article.body)
               ) : (
                 <p className="text-dim-gray">Content coming soon...</p>
               )}
             </div>
 
-            {purchaseLink && (
+            {availableAtUrl && (
               <div className="purchase-section">
-                <a href={purchaseLink.url} className="purchase-link" target="_blank" rel="noopener noreferrer">
-                  <span className="purchase-text">Available at</span>
-                  <span className="brand-name">{brandName || purchaseLink.text}</span>
+                <a href={availableAtUrl} className="purchase-link" target="_blank" rel="noopener noreferrer">
+                  <span className="purchase-text">{availableAtLabel}</span>
                   <svg className="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M7 7h10v10M7 17L17 7"/>
                   </svg>

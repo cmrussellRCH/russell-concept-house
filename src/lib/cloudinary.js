@@ -8,7 +8,7 @@ export function buildCloudinaryUrl(publicId, options = {}) {
     height,
     quality = 'auto',
     format = 'auto',
-    crop = 'fill',
+    crop,
     gravity = 'auto',
     ...additionalOptions
   } = options;
@@ -18,11 +18,14 @@ export function buildCloudinaryUrl(publicId, options = {}) {
   
   if (width || height) {
     let transform = '';
+    const hasBothDimensions = Boolean(width && height);
+    const cropMode = crop || (hasBothDimensions ? 'fill' : 'limit');
+
     if (width) transform += `w_${width}`;
     if (width && height) transform += ',';
     if (height) transform += `h_${height}`;
-    if (crop) transform += `,c_${crop}`;
-    if (gravity) transform += `,g_${gravity}`;
+    if (cropMode) transform += `,c_${cropMode}`;
+    if (hasBothDimensions && gravity) transform += `,g_${gravity}`;
     transformations.push(transform);
   }
   
