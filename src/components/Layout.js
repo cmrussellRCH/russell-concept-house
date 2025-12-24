@@ -303,9 +303,13 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           
           /* Articles page specific - 75% opacity on mobile */
           .articles-page-nav {
-            background-color: rgba(255, 255, 255, 0.75) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: transparent !important;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+          }
+
+          .articles-page-nav.scrolled {
+            box-shadow: none;
           }
         }
       `}</style>

@@ -546,8 +546,8 @@
           @media (max-width: 768px) {
             @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
               .articles-page {
-                --articles-fade-start: 28px;
-                --articles-fade-end: 120px;
+                --articles-fade-start: 64px;
+                --articles-fade-end: 184px;
               }
             }
 
