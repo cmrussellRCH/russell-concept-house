@@ -26,6 +26,7 @@ export default function ConversationPage({ conversation }) {
     return match ? match[1] : null
   }
   
+  const mainImageSource = conversation.mainImagePublicId || conversation.mainImage
   const videoId = getYouTubeId(conversation.videoUrl)
   const conversationName = conversation.title.replace(/^A CONVERSATION WITH[:\s]*/i, '').trim()
   const videoEmbedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&hd=1` : null
@@ -36,9 +37,9 @@ export default function ConversationPage({ conversation }) {
       <div className="video-player-container">
         {!isPlaying ? (
           <div className="custom-video-thumbnail" onClick={() => setIsPlaying(true)}>
-            {conversation.mainImage && (
+            {mainImageSource && (
               <img 
-                src={urlFor(conversation.mainImage).width(1200).quality(90).url()} 
+                src={urlFor(mainImageSource).width(1200).quality(90).url()} 
                 alt={conversation.title}
                 className="video-thumbnail-image"
                 loading="lazy"
@@ -73,12 +74,36 @@ export default function ConversationPage({ conversation }) {
     
     return body.map((block, index) => {
       if (block._type === 'block') {
-        const text = block.children?.map(child => child.text).filter(Boolean).join('')
-        if (!text) return null
+        const nodes = (block.children || []).map((child, childIndex) => {
+          if (!child?.text) return null
+          let node = child.text
+          const marks = Array.isArray(child.marks) ? child.marks : []
+          marks.forEach((mark) => {
+            if (mark === 'strong') {
+              node = <strong>{node}</strong>
+              return
+            }
+            if (mark === 'em') {
+              node = <em>{node}</em>
+              return
+            }
+            const markDef = block.markDefs?.find(def => def._key === mark && def._type === 'link')
+            if (markDef?.href) {
+              node = (
+                <a href={markDef.href} target="_blank" rel="noreferrer noopener">
+                  {node}
+                </a>
+              )
+            }
+          })
+
+          return <span key={`${index}-${childIndex}`}>{node}</span>
+        }).filter(Boolean)
+        if (nodes.length === 0) return null
         
         return (
           <p key={index} className="paragraph">
-            {text}
+            {nodes}
           </p>
         )
       }
@@ -103,14 +128,14 @@ export default function ConversationPage({ conversation }) {
           <meta property="og:title" content={pageTitle} />
           <meta property="og:description" content={pageDescription} />
           <meta property="og:url" content={canonicalUrl} />
-          {conversation.mainImage?.asset?.url && (
-            <meta property="og:image" content={conversation.mainImage.asset.url} />
+          {mainImageSource && (
+            <meta property="og:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={pageTitle} />
           <meta name="twitter:description" content={pageDescription} />
-          {conversation.mainImage?.asset?.url && (
-            <meta name="twitter:image" content={conversation.mainImage.asset.url} />
+          {mainImageSource && (
+            <meta name="twitter:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');

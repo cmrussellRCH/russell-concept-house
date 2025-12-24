@@ -75,16 +75,14 @@ export default function ArticlePage({ article }) {
     for (const block of content) {
       if (block._type === 'block' && block.children) {
         for (const child of block.children) {
-          if (child.marks?.includes('link') && child.text) {
-            // Find the link mark
-            const linkMark = block.markDefs?.find(mark => 
-              mark._type === 'link' && child.marks.includes(mark._key)
-            )
-            if (linkMark?.href) {
-              return {
-                url: linkMark.href,
-                text: child.text
-              }
+          if (!child?.text) continue
+          const linkMark = block.markDefs?.find(mark => 
+            mark._type === 'link' && child.marks?.includes(mark._key)
+          )
+          if (linkMark?.href) {
+            return {
+              url: linkMark.href,
+              text: child.text
             }
           }
         }
@@ -98,24 +96,44 @@ export default function ArticlePage({ article }) {
     
     return content.map((block, index) => {
       if (block._type === 'block') {
-        const text = block.children?.map(child => {
-          // Skip rendering purchase links in the body
-          if (purchaseLink && child.marks?.includes('link')) {
-            const linkMark = block.markDefs?.find(mark => 
-              mark._type === 'link' && child.marks.includes(mark._key)
-            )
-            if (linkMark?.href === purchaseLink.url) {
-              return null
-            }
+        const nodes = (block.children || []).map((child, childIndex) => {
+          if (!child?.text) return null
+          const linkMark = block.markDefs?.find(mark => 
+            mark._type === 'link' && child.marks?.includes(mark._key)
+          )
+          if (purchaseLink && linkMark?.href === purchaseLink.url) {
+            return null
           }
-          return child.text
-        }).filter(Boolean).join('')
-        
-        if (!text) return null
-        
+
+          let node = child.text
+          const marks = Array.isArray(child.marks) ? child.marks : []
+          marks.forEach((mark) => {
+            if (mark === 'strong') {
+              node = <strong>{node}</strong>
+              return
+            }
+            if (mark === 'em') {
+              node = <em>{node}</em>
+              return
+            }
+            const markDef = block.markDefs?.find(def => def._key === mark && def._type === 'link')
+            if (markDef?.href) {
+              node = (
+                <a href={markDef.href} target="_blank" rel="noreferrer noopener">
+                  {node}
+                </a>
+              )
+            }
+          })
+
+          return <span key={`${index}-${childIndex}`}>{node}</span>
+        }).filter(Boolean)
+
+        if (nodes.length === 0) return null
+
         return (
           <p key={index} className="paragraph">
-            {text}
+            {nodes}
           </p>
         )
       }
@@ -152,10 +170,14 @@ export default function ArticlePage({ article }) {
     });
   };
 
+  const mainImageSource = article.mainImagePublicId || article.mainImage
+  const gallerySources = (article.galleryPublicIds && article.galleryPublicIds.length > 0)
+    ? article.galleryPublicIds
+    : (article.gallery || [])
   const allImages = [
-    article.mainImage,
-    ...(article.gallery || [])
-  ].filter(img => img?.asset)
+    mainImageSource,
+    ...gallerySources
+  ].filter(Boolean)
 
   const { productName, brandName } = parseTitle(article.title)
   const purchaseLink = extractPurchaseLink(article.body)
@@ -205,14 +227,14 @@ export default function ArticlePage({ article }) {
           <meta property="og:title" content={pageTitle} />
           <meta property="og:description" content={pageDescription} />
           <meta property="og:url" content={canonicalUrl} />
-          {article.mainImage?.asset?.url && (
-            <meta property="og:image" content={article.mainImage.asset.url} />
+          {mainImageSource && (
+            <meta property="og:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={pageTitle} />
           <meta name="twitter:description" content={pageDescription} />
-          {article.mainImage?.asset?.url && (
-            <meta name="twitter:image" content={article.mainImage.asset.url} />
+          {mainImageSource && (
+            <meta name="twitter:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
@@ -1114,9 +1136,9 @@ export default function ArticlePage({ article }) {
                   allowFullScreen
                   title={article.title}
                 />
-              ) : article.mainImage && (
+              ) : mainImageSource && (
                 <VideoPlayer 
-                  image={article.mainImage} 
+                  image={mainImageSource} 
                   videoUrl={article.videoUrl}
                 />
               )}
@@ -1230,7 +1252,7 @@ export default function ArticlePage({ article }) {
 
                   {/* Pinterest */}
                   <button 
-                    onClick={() => shareToPinterest(window.location.href, article.mainImage ? urlFor(article.mainImage).url() : '')}
+                    onClick={() => shareToPinterest(window.location.href, mainImageSource ? urlFor(mainImageSource).url() : '')}
                     className="text-gray-600 hover:text-black transition-colors"
                     aria-label="Share on Pinterest"
                   >
@@ -1348,7 +1370,7 @@ export default function ArticlePage({ article }) {
 
                 {/* Pinterest */}
                 <button 
-                  onClick={() => shareToPinterest(window.location.href, article.mainImage ? urlFor(article.mainImage).url() : '')}
+                  onClick={() => shareToPinterest(window.location.href, mainImageSource ? urlFor(mainImageSource).url() : '')}
                   className="text-gray-600 hover:text-black transition-colors"
                   aria-label="Share on Pinterest"
                 >

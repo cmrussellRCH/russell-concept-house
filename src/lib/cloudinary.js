@@ -70,13 +70,16 @@ export function isCloudinaryUrl(url) {
 
 // Get optimized image URL (works with both Sanity and Cloudinary)
 export function getOptimizedImageUrl(image, options = {}) {
-  // If it's a string URL
+  // If it's a string URL or public ID
   if (typeof image === 'string') {
     if (isCloudinaryUrl(image)) {
       const publicId = extractCloudinaryPublicId(image);
       return buildCloudinaryUrl(publicId, options);
     }
-    return image; // Return as-is if not Cloudinary
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    return buildCloudinaryUrl(image, options);
   }
   
   // If it's a Sanity image object with Cloudinary source
