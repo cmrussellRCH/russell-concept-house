@@ -74,7 +74,7 @@ export default function ConversationsPage({ conversations }) {
             color: rgba(247, 245, 243, 0.5);
             line-height: 1.6;
             padding-top: 0.25rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .row-content {
@@ -138,7 +138,7 @@ export default function ConversationsPage({ conversations }) {
             line-height: 1.3;
             margin-bottom: 0.75rem;
             color: #f7f5f3;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
           }
 
           .conversation-excerpt {
@@ -146,7 +146,7 @@ export default function ConversationsPage({ conversations }) {
             line-height: 1.6;
             color: rgba(247, 245, 243, 0.7);
             margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .conversation-meta {
@@ -154,7 +154,7 @@ export default function ConversationsPage({ conversations }) {
             gap: 2rem;
             font-size: 0.875rem;
             color: rgba(247, 245, 243, 0.5);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .conversation-category {
@@ -174,7 +174,7 @@ export default function ConversationsPage({ conversations }) {
             color: rgba(247, 245, 243, 0.5);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           /* Override header colors for dark page */

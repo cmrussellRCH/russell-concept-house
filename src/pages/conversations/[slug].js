@@ -138,8 +138,6 @@ export default function ConversationPage({ conversation }) {
             <meta name="twitter:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
-            
             /* Conversation-specific page styles */
             .conversation-detail-page {
               background: #2d2b29;
@@ -227,9 +225,9 @@ export default function ConversationPage({ conversation }) {
             }
             
             .conversation-title {
-              font-family: 'Playfair Display', serif;
+              font-family: var(--font-playfair), serif;
               font-size: clamp(2rem, 5vw, 4rem);
-              font-weight: 300;
+              font-weight: 400;
               letter-spacing: -0.02em;
               line-height: 1.1;
               margin-bottom: 0.5rem;
@@ -239,7 +237,7 @@ export default function ConversationPage({ conversation }) {
             .title-sub {
               display: block;
               font-size: 0.875rem;
-              font-family: 'Inter', sans-serif;
+              font-family: var(--font-inter), sans-serif;
               font-weight: 300;
               letter-spacing: 0.1em;
               text-transform: uppercase;

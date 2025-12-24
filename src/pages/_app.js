@@ -1,7 +1,21 @@
 import '@/styles/globals.css'
+import '@/styles/articles.css'
 import Layout from '@/components/Layout'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
+import { Inter, Playfair_Display } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-inter'
+})
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-playfair'
+})
 
 export default function App({ Component, pageProps }) {
   const [topImageUrl, setTopImageUrl] = useState(null)
@@ -19,14 +33,16 @@ export default function App({ Component, pageProps }) {
   const isVideoProfile = isConversationDetail
   
   return (
-    <Layout 
-      topImageUrl={topImageUrl}
-      isDarkPage={isDarkPage}
-      isDetailPage={isDetailPage}
-      isVideoProfile={isVideoProfile}
-      isHomePage={isHomePage}
-    >
-      <Component {...pageProps} setTopImageUrl={setTopImageUrl} />
-    </Layout>
+    <div className={`${inter.variable} ${playfair.variable}`}>
+      <Layout 
+        topImageUrl={topImageUrl}
+        isDarkPage={isDarkPage}
+        isDetailPage={isDetailPage}
+        isVideoProfile={isVideoProfile}
+        isHomePage={isHomePage}
+      >
+        <Component {...pageProps} setTopImageUrl={setTopImageUrl} />
+      </Layout>
+    </div>
   )
 }

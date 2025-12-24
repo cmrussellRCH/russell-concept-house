@@ -20,8 +20,6 @@ export default function About() {
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Playfair+Display:wght@300;400&display=swap');
-          
           .about-hero {
             height: 60vh;
             display: flex;
@@ -48,10 +46,10 @@ export default function About() {
           
           .hero-title {
             font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 300;
+            font-weight: 400;
             letter-spacing: -0.02em;
             margin-bottom: 1.5rem;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
           }
           
           .hero-subtitle {
@@ -59,7 +57,7 @@ export default function About() {
             color: #666;
             font-weight: 300;
             line-height: 1.6;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .content-section {
@@ -72,9 +70,9 @@ export default function About() {
           
           .section-title {
             font-size: 2rem;
-            font-weight: 300;
+            font-weight: 400;
             margin-bottom: 2rem;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
           }
           
           .values-grid {
@@ -93,20 +91,20 @@ export default function About() {
             font-size: 0.75rem;
             color: #999;
             margin-bottom: 0.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .value-title {
             font-size: 1.25rem;
-            font-weight: 300;
+            font-weight: 400;
             margin-bottom: 0.75rem;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
           }
           
           .value-description {
             color: #666;
             line-height: 1.6;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
           
@@ -129,7 +127,7 @@ export default function About() {
             color: #666;
             line-height: 1.6;
             margin-bottom: 1rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
             font-size: 0.95rem;
           }
@@ -142,7 +140,7 @@ export default function About() {
             align-items: center;
             gap: 0.5rem;
             transition: gap 0.3s ease;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             letter-spacing: 0.05em;
           }
           
@@ -167,7 +165,7 @@ export default function About() {
             text-decoration: none;
             margin-bottom: 0.5rem;
             transition: color 0.2s ease;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
           
@@ -248,7 +246,7 @@ export default function About() {
       <section className="contact-section">
         <div className="container-custom">
           <h2 className="section-title">Get in Touch</h2>
-          <p style={{ marginBottom: '2rem', color: '#666', fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: '0.95rem' }}>
+          <p style={{ marginBottom: '2rem', color: '#666', fontFamily: 'var(--font-inter), sans-serif', fontWeight: 300, fontSize: '0.95rem' }}>
             If you&apos;re a designer and would like your work featured on RCH, just reach out below!
           </p>
           <div className="contact-info">

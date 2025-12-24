@@ -212,8 +212,6 @@ export default function ArticlePage({ article }) {
             <meta name="twitter:image" content={urlFor(mainImageSource).width(1200).url()} />
           )}
           <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap');
-          
           /* Article-specific page styles */
           .article-detail-page {
             background: ${isVideoProfile ? '#2d2b29' : '#fcfcfc'};
@@ -432,7 +430,7 @@ export default function ArticlePage({ article }) {
           .article-title {
             line-height: 1.2;
             margin-bottom: 1rem;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -451,12 +449,12 @@ export default function ArticlePage({ article }) {
             display: inline;
             margin-left: 1rem;
             font-size: clamp(2rem, 3vw, 2.5rem);
-            font-weight: 300;
+            font-weight: 400;
           }
           
           .by-text {
             font-size: 1rem;
-            font-weight: 300;
+            font-weight: 400;
             text-transform: lowercase;
             opacity: 0.7;
           }
@@ -464,7 +462,7 @@ export default function ArticlePage({ article }) {
           .article-meta {
             font-size: 0.875rem;
             color: #666;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .article-date {
@@ -478,7 +476,7 @@ export default function ArticlePage({ article }) {
             line-height: 1.75;
             color: #333;
             margin-bottom: 1.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
 
@@ -520,14 +518,14 @@ export default function ArticlePage({ article }) {
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
           
           .brand-name {
             font-size: 1.125rem;
             font-weight: 400;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .arrow-icon {
@@ -552,13 +550,13 @@ export default function ArticlePage({ article }) {
             letter-spacing: 0.1em;
             color: #999;
             margin-bottom: 0.25rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .attribution-name {
             font-size: 0.875rem;
             color: #666;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .author-section {
@@ -612,7 +610,7 @@ export default function ArticlePage({ article }) {
             background: rgba(255, 255, 255, 0.9);
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           .thumbnails {
@@ -840,17 +838,17 @@ export default function ArticlePage({ article }) {
 
           .video-profile-title {
             font-size: clamp(2.5rem, 4vw, 3.5rem);
-            font-weight: 300;
+            font-weight: 400;
             line-height: 1.2;
             color: #f7f5f3;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
             margin-bottom: 1rem;
           }
 
           .video-profile-date {
             color: rgba(247, 245, 243, 0.6);
             font-size: 0.875rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .video-section {
@@ -876,7 +874,7 @@ export default function ArticlePage({ article }) {
             font-size: 1.125rem;
             line-height: 1.8;
             margin-bottom: 1.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
 
@@ -894,13 +892,13 @@ export default function ArticlePage({ article }) {
             color: rgba(247, 245, 243, 0.5);
             display: block;
             margin-bottom: 0.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .signature-name {
             font-size: 1rem;
             color: rgba(247, 245, 243, 0.7);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           @media (max-width: 768px) {
@@ -947,17 +945,17 @@ export default function ArticlePage({ article }) {
 
           .video-title {
             font-size: 2.5rem;
-            font-weight: 300;
+            font-weight: 400;
             color: #f7f5f3;
             margin-bottom: 0.5rem;
             letter-spacing: -0.02em;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
           }
 
           .video-metadata {
             color: rgba(247, 245, 243, 0.7);
             font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .video-metadata .duration {
@@ -1001,7 +999,7 @@ export default function ArticlePage({ article }) {
             font-size: 1.05rem;
             line-height: 1.7;
             margin-bottom: 1.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
             font-weight: 300;
           }
 
@@ -1032,13 +1030,13 @@ export default function ArticlePage({ article }) {
             color: rgba(247, 245, 243, 0.5);
             display: block;
             margin-bottom: 0.5rem;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           .video-signature .signature-name {
             font-size: 1rem;
             color: rgba(247, 245, 243, 0.7);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
 
           /* Remove all existing conflicting video profile styles */
