@@ -40,6 +40,37 @@
             background: #fafafa;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            --articles-grid-offset: 0;
+          }
+
+          @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
+            .articles-page {
+              --articles-fade-start: 40px;
+              --articles-fade-end: 160px;
+            }
+
+            .articles-grid {
+              -webkit-mask-image: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0,
+                rgba(0, 0, 0, 0) var(--articles-fade-start),
+                rgba(0, 0, 0, 1) var(--articles-fade-end),
+                rgba(0, 0, 0, 1) 100%
+              );
+              -webkit-mask-position: 0 calc((var(--articles-scroll, 0) - var(--articles-grid-offset, 0)) * 1px);
+              -webkit-mask-size: 100% 100vh;
+              -webkit-mask-repeat: no-repeat;
+              mask-image: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0,
+                rgba(0, 0, 0, 0) var(--articles-fade-start),
+                rgba(0, 0, 0, 1) var(--articles-fade-end),
+                rgba(0, 0, 0, 1) 100%
+              );
+              mask-position: 0 calc((var(--articles-scroll, 0) - var(--articles-grid-offset, 0)) * 1px);
+              mask-size: 100% 100vh;
+              mask-repeat: no-repeat;
+            }
           }
           
           /* Prevent font loading flicker */
@@ -63,11 +94,24 @@
             transition: none !important;
           }
           
-          /* Always allow background transitions */
-          .article-row::before {
-            transition: opacity 0.3s ease-in-out !important;
+          .articles-hover-bg {
+            position: fixed;
+            top: -50px;
+            left: -50px;
+            width: calc(100vw + 100px);
+            height: calc(100vh + 100px);
+            background:
+              linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)),
+              var(--articles-hover-image, none);
+            background-size: cover;
+            background-position: center;
+            filter: blur(15px) saturate(1.2);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+            z-index: 1;
           }
-          
+
           /* Link wrapper styles */
           .article-link {
             display: block;
@@ -75,40 +119,8 @@
             color: inherit;
           }
           
-          /* CSS-only hover background effect */
           .article-row {
             position: relative;
-          }
-          
-          .article-row::before {
-            content: '';
-            position: fixed;
-            top: -50px;
-            left: -50px;
-            width: calc(100vw + 100px);
-            height: calc(100vh + 100px);
-            background: 
-              linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), /* White overlay at 40% */
-              var(--bg-image, none); /* Background image */
-            background-size: cover;
-            background-position: center;
-            filter: blur(15px) saturate(1.2);
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            pointer-events: none;
-            z-index: -1;
-          }
-          
-          .article-row:hover::before,
-          .article-row:active::before {
-            opacity: 1;
-          }
-          
-          /* Additional selectors for touch interaction on mobile */
-          @media (pointer: coarse) {
-            .article-link:active .article-row::before {
-              opacity: 1;
-            }
           }
           
           .header-section {
@@ -323,13 +335,6 @@
               user-select: none;
             }
             
-            /* Make background image show on touch for mobile */
-            .article-row:active::before,
-            .article-link:active .article-row::before {
-              opacity: 1;
-              transition: opacity 0.2s ease-in-out;
-            }
-            
             /* Fix touch area - ensure link is proper block */
             .article-link {
               display: block;
@@ -537,6 +542,13 @@
           }
           
           @media (max-width: 768px) {
+            @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or (mask-image: linear-gradient(#000, #000))) {
+              .articles-page {
+                --articles-fade-start: 28px;
+                --articles-fade-end: 120px;
+              }
+            }
+
             .articles-grid {
               padding: 1rem 1rem 3rem;
             }
