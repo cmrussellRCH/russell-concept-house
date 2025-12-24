@@ -7,8 +7,6 @@ export default function Shop() {
         <title>Shop - Russell Concept House</title>
         <meta name="description" content="Shop our curated collection of design pieces and home goods" />
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300&display=swap');
-          
           .shop-container {
             min-height: 100vh;
             display: flex;
@@ -24,10 +22,10 @@ export default function Shop() {
           
           .coming-soon-text {
             font-size: 3rem;
-            font-weight: 300;
+            font-weight: 400;
             letter-spacing: 0.05em;
             color: #222;
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-playfair), serif;
             margin-bottom: 1rem;
           }
           
@@ -36,7 +34,7 @@ export default function Shop() {
             font-weight: 300;
             letter-spacing: 0.1em;
             color: #666;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-inter), sans-serif;
           }
           
           @media (max-width: 768px) {
