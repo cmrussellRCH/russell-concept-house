@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 import { isCloudinaryUrl } from '../lib/cloudinary'
 import Layout from '../components/Layout'
@@ -8,6 +8,11 @@ import Layout from '../components/Layout'
 export default function ArticlesPage({ articles }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [isLoaded, setIsLoaded] = useState(false)
+  const pageRef = useRef(null)
+  const gridRef = useRef(null)
+  const hoverPrimaryRef = useRef(null)
+  const hoverSecondaryRef = useRef(null)
+  const activeHoverRef = useRef('primary')
 
   useEffect(() => {
     // Wait for fonts to load before enabling transitions
@@ -21,6 +26,84 @@ export default function ArticlesPage({ articles }) {
         setIsLoaded(true)
       }, 300)
       return () => clearTimeout(timer)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!pageRef.current || !gridRef.current) {
+      return
+    }
+
+    const updateGridOffset = () => {
+      const offset = gridRef.current.getBoundingClientRect().top + window.scrollY
+      pageRef.current.style.setProperty('--articles-grid-offset', String(offset))
+    }
+
+    updateGridOffset()
+    window.addEventListener('resize', updateGridOffset)
+    return () => {
+      window.removeEventListener('resize', updateGridOffset)
+    }
+  }, [isLoaded])
+
+  const setHoverBackground = (imageUrl) => {
+    if (!hoverPrimaryRef.current || !hoverSecondaryRef.current) {
+      return
+    }
+
+    const primary = hoverPrimaryRef.current
+    const secondary = hoverSecondaryRef.current
+
+    if (!imageUrl) {
+      primary.style.opacity = '0'
+      secondary.style.opacity = '0'
+      return
+    }
+
+    const active = activeHoverRef.current === 'primary' ? primary : secondary
+    const next = active === primary ? secondary : primary
+    const nextValue = `url(${imageUrl})`
+    const activeValue = active.style.getPropertyValue('--articles-hover-image')
+
+    if (activeValue === nextValue) {
+      active.style.opacity = '1'
+      next.style.opacity = '0'
+      return
+    }
+
+    next.style.setProperty('--articles-hover-image', nextValue)
+    next.style.opacity = '1'
+    active.style.opacity = '0'
+    activeHoverRef.current = active === primary ? 'secondary' : 'primary'
+  }
+
+  useEffect(() => {
+    if (!pageRef.current) {
+      return
+    }
+
+    let frame = null
+    const updateScrollVar = () => {
+      frame = null
+      pageRef.current.style.setProperty('--articles-scroll', String(window.scrollY))
+    }
+
+    const handleScroll = () => {
+      if (frame !== null) {
+        return
+      }
+      frame = window.requestAnimationFrame(updateScrollVar)
+    }
+
+    updateScrollVar()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame)
+      }
     }
   }, [])
 
@@ -70,10 +153,13 @@ export default function ArticlesPage({ articles }) {
       </Head>
       
       <div 
+        ref={pageRef}
         className={`articles-page ${isLoaded ? '' : 'no-transitions'}`}
         style={{ minHeight: '100vh', background: '#fafafa' }}
       >
         <div className="articles-wrapper" style={{ minHeight: '100vh', position: 'relative' }}>
+            <div className="articles-hover-bg" aria-hidden="true" ref={hoverPrimaryRef}></div>
+            <div className="articles-hover-bg" aria-hidden="true" ref={hoverSecondaryRef}></div>
             {/* Content Layer */}
             <div className="content-layer" style={{ position: 'relative', zIndex: 10, background: 'transparent' }}>
               {/* Header Section */}
@@ -106,6 +192,7 @@ export default function ArticlesPage({ articles }) {
               {/* Articles Grid */}
               <div 
                 className="articles-grid"
+                ref={gridRef}
                 style={{
                   padding: '2rem 2rem 4rem',
                   maxWidth: '1400px',
@@ -126,11 +213,13 @@ export default function ArticlesPage({ articles }) {
                     <Link key={article._id} href={`/articles/${article.slug.current}`} className="article-link">
                       <div 
                         className={`article-row ${isLoaded ? 'fonts-loaded' : ''}`}
-                        style={{
-                          '--bg-image': backgroundUrl
-                            ? `url(${backgroundUrl})`
-                            : 'none'
-                        }}
+                        onMouseEnter={() => setHoverBackground(backgroundUrl)}
+                        onMouseLeave={() => setHoverBackground(null)}
+                        onFocus={() => setHoverBackground(backgroundUrl)}
+                        onBlur={() => setHoverBackground(null)}
+                        onTouchStart={() => setHoverBackground(backgroundUrl)}
+                        onTouchEnd={() => setHoverBackground(null)}
+                        onTouchCancel={() => setHoverBackground(null)}
                       >
                       <div className="article-inner">
                         <span className="article-number">
