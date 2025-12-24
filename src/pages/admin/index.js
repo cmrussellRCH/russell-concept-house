@@ -11,6 +11,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
   const queryId = typeof router.query.id === 'string' ? router.query.id : selectedId
   const isCreating = router.query.new === '1' || isNew
   const activeId = isCreating ? null : queryId
+  const isEditingDraft = Boolean(selectedArticle?._id?.startsWith('drafts.'))
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -21,7 +22,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
     const response = await fetch('/api/admin/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...payload, status: 'published' })
     })
 
     if (!response.ok) {
@@ -37,17 +38,78 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
     }
   }
 
+  const handleCreateDraft = async (payload) => {
+    const response = await fetch('/api/admin/articles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, status: 'draft' })
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || 'Unable to save draft.')
+    }
+
+    const data = await response.json()
+    if (data?.article?._id) {
+      router.push(`/admin?id=${data.article._id}`)
+    } else {
+      router.push('/admin')
+    }
+  }
+
   const handleUpdate = async (payload) => {
     if (!selectedArticle?._id) return
     const response = await fetch(`/api/admin/articles/${selectedArticle._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ ...payload, status: 'published' })
     })
 
     if (!response.ok) {
       const data = await response.json()
       throw new Error(data.error || 'Unable to update article.')
+    }
+
+    const data = await response.json()
+    if (data?.article?._id) {
+      router.replace(`/admin?id=${data.article._id}`)
+    }
+  }
+
+  const handleSaveDraft = async (payload) => {
+    if (!selectedArticle?._id) {
+      return handleCreateDraft(payload)
+    }
+
+    const response = await fetch(`/api/admin/articles/${selectedArticle._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, status: 'draft' })
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || 'Unable to save draft.')
+    }
+
+    const data = await response.json()
+    if (data?.article?._id) {
+      router.replace(`/admin?id=${data.article._id}`)
+    }
+  }
+
+  const handlePublish = async (payload) => {
+    if (!selectedArticle?._id) return
+    const response = await fetch(`/api/admin/articles/${selectedArticle._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, status: 'published' })
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || 'Unable to publish article.')
     }
 
     const data = await response.json()
@@ -100,6 +162,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                 ? urlFor(mainImageSource).width(160).height(120).quality(80).url()
                 : null
               const isActive = activeId === article._id
+              const isDraft = article._id.startsWith('drafts.')
 
               return (
                 <Link
@@ -117,6 +180,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                   <div className="admin-row-content">
                     <div className="admin-row-title">{article.title}</div>
                     <div className="admin-row-meta">
+                      {isDraft && <span className="admin-badge warning">Draft</span>}
                       <span className="admin-badge">{article.category || 'uncategorized'}</span>
                       {article.mediaType && <span className="admin-badge">{article.mediaType}</span>}
                       {article.publishedAt && (
@@ -137,6 +201,8 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                 key="new"
                 submitLabel="Create Article"
                 onSubmit={handleCreate}
+                onSaveDraft={handleCreateDraft}
+                draftLabel="Save Draft"
               />
             </>
           )}
@@ -146,8 +212,10 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
               <ArticleForm
                 key={selectedArticle._id}
                 initialArticle={selectedArticle}
-                submitLabel="Save Changes"
-                onSubmit={handleUpdate}
+                submitLabel={isEditingDraft ? 'Publish Article' : 'Save Changes'}
+                onSubmit={isEditingDraft ? handlePublish : handleUpdate}
+                onSaveDraft={handleSaveDraft}
+                draftLabel="Save Draft"
                 onDelete={handleDelete}
                 deleteLabel="Delete Article"
               />
@@ -178,13 +246,14 @@ export async function getServerSideProps({ req, query }) {
 
   const client = requireWriteClient()
   const articles = await client.fetch(
-    `*[_type == "article" && !(_id in path("drafts.**"))] | order(publishedAt desc) {
+    `*[_type == "article"] | order(coalesce(publishedAt, _updatedAt) desc) {
       _id,
       title,
       slug,
       category,
       mediaType,
       publishedAt,
+      _updatedAt,
       mainImagePublicId,
       mainImage { asset-> { _id, url } }
     }`

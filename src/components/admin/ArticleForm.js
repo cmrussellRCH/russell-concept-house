@@ -22,7 +22,15 @@ function toDateTimeLocal(value) {
   return date.toISOString().slice(0, 16)
 }
 
-export default function ArticleForm({ initialArticle, onSubmit, submitLabel, onDelete, deleteLabel = 'Delete' }) {
+export default function ArticleForm({
+  initialArticle,
+  onSubmit,
+  submitLabel,
+  onDelete,
+  deleteLabel = 'Delete',
+  onSaveDraft,
+  draftLabel = 'Save Draft'
+}) {
   const [form, setForm] = useState(() => {
     const publishedAt = toDateTimeLocal(initialArticle?.publishedAt)
 
@@ -95,6 +103,17 @@ export default function ArticleForm({ initialArticle, onSubmit, submitLabel, onD
       return
     }
 
+    const resolveUploadError = (uploadError, result) => {
+      if (uploadError?.response?.data?.error?.message) {
+        return uploadError.response.data.error.message
+      }
+      if (uploadError?.message) return uploadError.message
+      if (uploadError?.statusText) return uploadError.statusText
+      if (result?.info?.error?.message) return result.info.error.message
+      if (result?.info?.message) return result.info.message
+      return 'Upload failed. Please try again.'
+    }
+
     const widget = window.cloudinary.createUploadWidget(
       {
         cloudName,
@@ -106,7 +125,11 @@ export default function ArticleForm({ initialArticle, onSubmit, submitLabel, onD
       },
       (uploadError, result) => {
         if (uploadError) {
-          setError('Upload failed. Please try again.')
+          setError(resolveUploadError(uploadError, result))
+          return
+        }
+        if (result?.event === 'upload-error') {
+          setError(resolveUploadError(uploadError, result))
           return
         }
         if (result?.event === 'success') {
@@ -413,9 +436,34 @@ export default function ArticleForm({ initialArticle, onSubmit, submitLabel, onD
       {status && <p className="admin-note" style={{ color: '#2f6f3e' }}>{status}</p>}
 
       <div className="admin-inline-actions">
-        <button type="submit" className="admin-button" disabled={isSubmitting}>
+        <button type="submit" className="admin-button primary" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : submitLabel}
         </button>
+        {onSaveDraft && (
+          <button
+            type="button"
+            className="admin-button warning"
+            disabled={isSubmitting}
+            onClick={async () => {
+              setError('')
+              setStatus('')
+              setIsSubmitting(true)
+              try {
+                await onSaveDraft({
+                  ...form,
+                  clearMainImagePublicId
+                })
+                setStatus('Draft saved.')
+              } catch (submitError) {
+                setError(submitError.message || 'Unable to save draft.')
+              } finally {
+                setIsSubmitting(false)
+              }
+            }}
+          >
+            {isSubmitting ? 'Saving...' : draftLabel}
+          </button>
+        )}
         {onDelete && (
           <button type="button" className="admin-button danger" onClick={onDelete}>
             {deleteLabel}

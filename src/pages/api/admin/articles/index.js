@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { requireAdminSession } from '../../../../lib/admin/session'
 import { requireWriteClient } from '../../../../lib/sanity.server'
 import { parseTags, slugify, toPortableText } from '../../../../lib/admin/articleUtils'
@@ -24,13 +25,14 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     const articles = await client.fetch(
-      `*[_type == "article" && !(_id in path("drafts.**"))] | order(publishedAt desc) {
+      `*[_type == "article"] | order(coalesce(publishedAt, _updatedAt) desc) {
         _id,
         title,
         slug,
         publishedAt,
         category,
         mediaType,
+        _updatedAt,
         mainImagePublicId,
         mainImage {
           asset-> { url }
@@ -60,14 +62,17 @@ export default async function handler(req, res) {
     videoDuration,
     tags,
     mainImagePublicId,
-    galleryPublicIds
+    galleryPublicIds,
+    status
   } = req.body || {}
+
+  const isDraft = status === 'draft'
 
   if (!title || !category) {
     return res.status(400).json({ error: 'Title and category are required.' })
   }
 
-  if (!mainImagePublicId) {
+  if (!isDraft && !mainImagePublicId) {
     return res.status(400).json({ error: 'Cloudinary main image is required.' })
   }
 
@@ -81,16 +86,18 @@ export default async function handler(req, res) {
   }
 
   const resolvedMediaType = mediaType === 'video' ? 'video' : 'images'
-  if (resolvedMediaType === 'video' && !videoUrl) {
+  if (!isDraft && resolvedMediaType === 'video' && !videoUrl) {
     return res.status(400).json({ error: 'Video URL is required for video articles.' })
   }
 
-  const existing = await client.fetch(
-    '*[_type == "article" && slug.current == $slug][0]._id',
-    { slug: normalizedSlug }
-  )
-  if (existing) {
-    return res.status(409).json({ error: 'Slug is already in use.' })
+  if (!isDraft) {
+    const existing = await client.fetch(
+      '*[_type == "article" && slug.current == $slug && !(_id in path("drafts.**"))][0]._id',
+      { slug: normalizedSlug }
+    )
+    if (existing) {
+      return res.status(409).json({ error: 'Slug is already in use.' })
+    }
   }
 
   const normalizedTags = parseTags(tags)
@@ -104,6 +111,7 @@ export default async function handler(req, res) {
     : []
 
   const document = {
+    _id: isDraft ? `drafts.${uuidv4()}` : undefined,
     _type: 'article',
     title: String(title).trim(),
     slug: { _type: 'slug', current: normalizedSlug },
@@ -122,7 +130,9 @@ export default async function handler(req, res) {
 
   const created = await client.create(document, { autoGenerateArrayKeys: true })
 
-  await revalidatePaths(res, created.slug?.current, created.mediaType)
+  if (!isDraft) {
+    await revalidatePaths(res, created.slug?.current, created.mediaType)
+  }
 
   return res.status(201).json({ article: created })
 }

@@ -68,8 +68,16 @@ export default async function handler(req, res) {
     tags,
     mainImagePublicId,
     galleryPublicIds,
-    clearMainImagePublicId
+    clearMainImagePublicId,
+    status
   } = req.body || {}
+
+  const isDraft = status === 'draft'
+  const isPublish = status === 'published'
+  const isDraftId = id.startsWith('drafts.')
+  const targetId = isDraft
+    ? (isDraftId ? id : `drafts.${id}`)
+    : (isDraftId ? id.replace(/^drafts\./, '') : id)
 
   if (!title || !category) {
     return res.status(400).json({ error: 'Title and category are required.' })
@@ -85,16 +93,18 @@ export default async function handler(req, res) {
   }
 
   const resolvedMediaType = mediaType === 'video' ? 'video' : 'images'
-  if (resolvedMediaType === 'video' && !videoUrl) {
+  if (!isDraft && resolvedMediaType === 'video' && !videoUrl) {
     return res.status(400).json({ error: 'Video URL is required for video articles.' })
   }
 
-  const existing = await client.fetch(
-    '*[_type == "article" && slug.current == $slug && _id != $id][0]._id',
-    { slug: normalizedSlug, id }
-  )
-  if (existing) {
-    return res.status(409).json({ error: 'Slug is already in use.' })
+  if (!isDraft) {
+    const existing = await client.fetch(
+      '*[_type == "article" && slug.current == $slug && _id != $id && !(_id in path("drafts.**"))][0]._id',
+      { slug: normalizedSlug, id: targetId }
+    )
+    if (existing) {
+      return res.status(409).json({ error: 'Slug is already in use.' })
+    }
   }
 
   const normalizedTags = parseTags(tags)
@@ -107,7 +117,9 @@ export default async function handler(req, res) {
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
 
-  const patch = client.patch(id).set({
+  await client.createIfNotExists({ _id: targetId, _type: 'article' })
+
+  const patch = client.patch(targetId).set({
     title: String(title).trim(),
     slug: { _type: 'slug', current: normalizedSlug },
     category,
@@ -126,6 +138,8 @@ export default async function handler(req, res) {
     patch.unset(['mainImagePublicId'])
   } else if (mainImagePublicId) {
     patch.set({ mainImagePublicId: String(mainImagePublicId).trim() })
+  } else if (!isDraft) {
+    patch.unset(['mainImagePublicId'])
   }
 
   if (resolvedMediaType !== 'video') {
@@ -134,7 +148,13 @@ export default async function handler(req, res) {
 
   const updated = await patch.commit({ autoGenerateArrayKeys: true })
 
-  await revalidatePaths(res, updated.slug?.current, updated.mediaType)
+  if (!isDraft) {
+    await revalidatePaths(res, updated.slug?.current, updated.mediaType)
+  }
+
+  if (isPublish && isDraftId) {
+    await client.delete(id)
+  }
 
   return res.status(200).json({ article: updated })
 }
