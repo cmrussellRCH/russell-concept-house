@@ -32,6 +32,16 @@ html {
   }
 }
 
+.is-navigating {
+  opacity: 0.96;
+  transition: opacity 180ms ease;
+}
+
+.is-navigating .articles-hover-bg {
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
 @layer components {
   .container-custom {
     @apply max-w-7xl mx-auto px-6 lg:px-8;
