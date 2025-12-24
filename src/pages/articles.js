@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
+import { isCloudinaryUrl } from '../lib/cloudinary'
 import Layout from '../components/Layout'
 
 export default function ArticlesPage({ articles }) {
@@ -731,14 +732,21 @@ export default function ArticlesPage({ articles }) {
               >
                 {filteredArticles.map((article, index) => {
                   const mainImageSource = article.mainImagePublicId || article.mainImage
+                  const isCloudinarySource = typeof mainImageSource === 'string'
+                    || isCloudinaryUrl(mainImageSource?.asset?.url)
+                  const backgroundUrl = mainImageSource
+                    ? (isCloudinarySource
+                      ? urlFor(mainImageSource).width(1400).quality(75).url()
+                      : urlFor(mainImageSource).width(1200).blur(27).url())
+                    : null
 
                   return (
                     <Link key={article._id} href={`/articles/${article.slug.current}`} className="article-link">
                       <div 
                         className={`article-row ${isLoaded ? 'fonts-loaded' : ''}`}
                         style={{
-                          '--bg-image': mainImageSource
-                            ? `url(${urlFor(mainImageSource).width(1200).blur(27).url()})`
+                          '--bg-image': backgroundUrl
+                            ? `url(${backgroundUrl})`
                             : 'none'
                         }}
                       >

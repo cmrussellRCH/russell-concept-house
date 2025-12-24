@@ -276,6 +276,8 @@ export async function getServerSideProps({ req, query }) {
         publishedAt,
         author,
         body,
+        availableAtLabel,
+        availableAtUrl,
         mediaType,
         videoUrl,
         videoDuration,

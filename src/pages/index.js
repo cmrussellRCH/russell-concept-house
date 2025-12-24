@@ -158,6 +158,24 @@ export default function Home({ articles, setTopImageUrl }) {
                             alt={article.title}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                             loading="lazy"
+                            onLoad={(event) => {
+                              const { naturalWidth, naturalHeight } = event.currentTarget
+                              if (!naturalWidth || !naturalHeight) return
+                              setLoadedImages(prev => {
+                                const existing = prev[article._id]
+                                if (existing && existing.width === naturalWidth && existing.height === naturalHeight) {
+                                  return prev
+                                }
+                                return {
+                                  ...prev,
+                                  [article._id]: {
+                                    width: naturalWidth,
+                                    height: naturalHeight,
+                                    aspectRatio: naturalHeight / naturalWidth
+                                  }
+                                }
+                              })
+                            }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         </>

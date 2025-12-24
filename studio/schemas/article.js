@@ -123,6 +123,18 @@ export default {
       ]
     },
     {
+      name: 'availableAtLabel',
+      title: 'Available At Button Label',
+      type: 'string',
+      description: 'Optional. Defaults to "Available At" if a URL is provided.'
+    },
+    {
+      name: 'availableAtUrl',
+      title: 'Available At URL',
+      type: 'url',
+      description: 'Optional. Add a link to show the call-to-action button.'
+    },
+    {
       name: 'mediaType',
       title: 'Media Type',
       type: 'string',

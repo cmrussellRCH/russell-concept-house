@@ -62,6 +62,8 @@ export default async function handler(req, res) {
     author,
     bodyHtml,
     bodyText,
+    availableAtLabel,
+    availableAtUrl,
     mediaType,
     videoUrl,
     videoDuration,
@@ -113,6 +115,8 @@ export default async function handler(req, res) {
     ? new Date().toISOString()
     : parsedPublishedAt.toISOString()
   const normalizedBodyHtml = bodyHtml ? String(bodyHtml) : ''
+  const normalizedAvailableAtUrl = availableAtUrl ? String(availableAtUrl).trim() : ''
+  const normalizedAvailableAtLabel = availableAtLabel ? String(availableAtLabel).trim() : ''
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
@@ -127,6 +131,10 @@ export default async function handler(req, res) {
     publishedAt: normalizedPublishedAt,
     author: author ? String(author).trim() : 'Russell Concept House',
     body: normalizedBodyHtml ? htmlToPortableText(normalizedBodyHtml) : toPortableText(bodyText || ''),
+    availableAtUrl: normalizedAvailableAtUrl || undefined,
+    availableAtLabel: normalizedAvailableAtUrl
+      ? (normalizedAvailableAtLabel || 'Available At')
+      : undefined,
     mediaType: resolvedMediaType,
     videoUrl: resolvedMediaType === 'video' ? videoUrl || undefined : undefined,
     videoDuration: resolvedMediaType === 'video' ? videoDuration || undefined : undefined,
@@ -144,6 +152,10 @@ export default async function handler(req, res) {
 
   if (resolvedMediaType !== 'video') {
     patch.unset(['videoUrl', 'videoDuration'])
+  }
+
+  if (!normalizedAvailableAtUrl) {
+    patch.unset(['availableAtUrl', 'availableAtLabel'])
   }
 
   const updated = await patch.commit({ autoGenerateArrayKeys: true })
