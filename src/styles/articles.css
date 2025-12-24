@@ -320,6 +320,8 @@
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             cursor: pointer;
             position: relative;
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 260px;
           }
           
           /* Mobile touch area improvements */
