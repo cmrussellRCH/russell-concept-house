@@ -68,6 +68,28 @@ export default function ArticlePage({ article }) {
     }
   }
 
+  const formatDesignerName = (name) => {
+    if (!name) return ''
+    const titleCaseExceptions = new Set(['CO', 'INC', 'LLC', 'LTD', 'PLC'])
+    return name
+      .split(' ')
+      .map((word) => {
+        if (word === '&') return '&'
+        const match = word.match(/^([^A-Za-z]*)([A-Za-z]+)([^A-Za-z]*)$/)
+        if (!match) return word
+        const [, leading, letters, trailing] = match
+        const isAllCaps = letters === letters.toUpperCase()
+        if (!isAllCaps) return word
+        const upper = letters.toUpperCase()
+        if (upper.length <= 3 && !titleCaseExceptions.has(upper)) {
+          return `${leading}${upper}${trailing}`
+        }
+        const titled = `${upper.charAt(0)}${upper.slice(1).toLowerCase()}`
+        return `${leading}${titled}${trailing}`
+      })
+      .join(' ')
+  }
+
   const renderContent = (content) => {
     if (!content) return null
     
@@ -154,6 +176,7 @@ export default function ArticlePage({ article }) {
   ].filter(Boolean)
 
   const { productName, brandName } = parseTitle(article.title)
+  const designerName = formatDesignerName(brandName)
   const availableAtUrl = article.availableAtUrl || ''
   const availableAtLabel = article.availableAtLabel || 'Available At'
   
@@ -433,9 +456,10 @@ export default function ArticlePage({ article }) {
               <header className="article-header">
               <h1 className="article-title">
                 <span className="product-name">{productName}</span>
-                {brandName && (
+                {designerName && (
                   <span className="brand-line">
-                    <span className="by-text">by</span> {brandName}
+                    <span className="by-text">by</span>{' '}
+                    <span className="designer-name">{designerName}</span>
                   </span>
                 )}
               </h1>
