@@ -21,6 +21,7 @@ export default async function handler(req, res) {
   }
 
   const client = requireWriteClient()
+  const previewClient = client.withConfig({ perspective: 'previewDrafts' })
   const { id } = req.query
 
   if (!id || typeof id !== 'string') {
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const article = await client.getDocument(id)
+    const article = await previewClient.getDocument(id)
     if (!article || article._type !== 'article') {
       return res.status(404).json({ error: 'Not found' })
     }
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'DELETE') {
-    const existing = await client.getDocument(id)
+    const existing = await previewClient.getDocument(id)
     if (!existing || existing._type !== 'article') {
       return res.status(404).json({ error: 'Not found' })
     }
@@ -117,13 +118,29 @@ export default async function handler(req, res) {
   const normalizedBodyHtml = bodyHtml ? String(bodyHtml) : ''
   const normalizedAvailableAtUrl = availableAtUrl ? String(availableAtUrl).trim() : ''
   const normalizedAvailableAtLabel = availableAtLabel ? String(availableAtLabel).trim() : ''
+  const normalizedVideoUrl = videoUrl ? String(videoUrl).trim() : ''
+  const normalizedVideoDuration = videoDuration ? String(videoDuration).trim() : ''
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
+  const publishedId = isDraftId ? id.replace(/^drafts\./, '') : id
+
+  let legacyMainImage = null
+  let legacyGallery = null
+
+  if (isDraft) {
+    const draftDoc = await previewClient.getDocument(targetId)
+    const publishedDoc = publishedId && publishedId !== targetId
+      ? await previewClient.getDocument(publishedId)
+      : null
+
+    legacyMainImage = draftDoc?.mainImage || publishedDoc?.mainImage || null
+    legacyGallery = (draftDoc?.gallery?.length ? draftDoc.gallery : publishedDoc?.gallery) || null
+  }
 
   await client.createIfNotExists({ _id: targetId, _type: 'article' })
 
-  const patch = client.patch(targetId).set({
+  const patchPayload = {
     title: String(title).trim(),
     slug: { _type: 'slug', current: normalizedSlug },
     category,
@@ -131,16 +148,41 @@ export default async function handler(req, res) {
     publishedAt: normalizedPublishedAt,
     author: author ? String(author).trim() : 'Russell Concept House',
     body: normalizedBodyHtml ? htmlToPortableText(normalizedBodyHtml) : toPortableText(bodyText || ''),
-    availableAtUrl: normalizedAvailableAtUrl || undefined,
-    availableAtLabel: normalizedAvailableAtUrl
-      ? (normalizedAvailableAtLabel || 'Available At')
-      : undefined,
     mediaType: resolvedMediaType,
-    videoUrl: resolvedMediaType === 'video' ? videoUrl || undefined : undefined,
-    videoDuration: resolvedMediaType === 'video' ? videoDuration || undefined : undefined,
-    galleryPublicIds: resolvedMediaType === 'video' ? [] : normalizedGallery,
     tags: normalizedTags
-  })
+  }
+
+  if (isDraft) {
+    if (normalizedAvailableAtUrl) {
+      patchPayload.availableAtUrl = normalizedAvailableAtUrl
+    }
+    if (normalizedAvailableAtLabel) {
+      patchPayload.availableAtLabel = normalizedAvailableAtLabel
+    }
+    if (normalizedVideoUrl) {
+      patchPayload.videoUrl = normalizedVideoUrl
+    }
+    if (normalizedVideoDuration) {
+      patchPayload.videoDuration = normalizedVideoDuration
+    }
+    patchPayload.galleryPublicIds = normalizedGallery
+    if (legacyMainImage) {
+      patchPayload.mainImage = legacyMainImage
+    }
+    if (legacyGallery) {
+      patchPayload.gallery = legacyGallery
+    }
+  } else {
+    patchPayload.availableAtUrl = normalizedAvailableAtUrl || undefined
+    patchPayload.availableAtLabel = normalizedAvailableAtUrl
+      ? (normalizedAvailableAtLabel || 'Available At')
+      : undefined
+    patchPayload.videoUrl = resolvedMediaType === 'video' ? normalizedVideoUrl || undefined : undefined
+    patchPayload.videoDuration = resolvedMediaType === 'video' ? normalizedVideoDuration || undefined : undefined
+    patchPayload.galleryPublicIds = resolvedMediaType === 'video' ? [] : normalizedGallery
+  }
+
+  const patch = client.patch(targetId).set(patchPayload)
 
   if (clearMainImagePublicId) {
     patch.unset(['mainImagePublicId'])
@@ -150,11 +192,11 @@ export default async function handler(req, res) {
     patch.unset(['mainImagePublicId'])
   }
 
-  if (resolvedMediaType !== 'video') {
+  if (!isDraft && resolvedMediaType !== 'video') {
     patch.unset(['videoUrl', 'videoDuration'])
   }
 
-  if (!normalizedAvailableAtUrl) {
+  if (!isDraft && !normalizedAvailableAtUrl) {
     patch.unset(['availableAtUrl', 'availableAtLabel'])
   }
 

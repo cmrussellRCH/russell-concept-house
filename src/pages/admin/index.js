@@ -244,7 +244,7 @@ export async function getServerSideProps({ req, query }) {
     }
   }
 
-  const client = requireWriteClient()
+  const client = requireWriteClient({ perspective: 'previewDrafts' })
   const articles = await client.fetch(
     `*[_type == "article"] | order(coalesce(publishedAt, _updatedAt) desc) {
       _id,

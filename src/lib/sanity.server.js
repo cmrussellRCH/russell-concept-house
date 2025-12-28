@@ -15,9 +15,12 @@ export const writeClient = token
     })
   : null
 
-export function requireWriteClient() {
+export function requireWriteClient(config = {}) {
   if (!writeClient) {
     throw new Error('SANITY_WRITE_TOKEN must be set for admin mutations.')
+  }
+  if (config && Object.keys(config).length > 0) {
+    return writeClient.withConfig(config)
   }
   return writeClient
 }
