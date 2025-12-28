@@ -603,7 +603,7 @@
             }
             
             /* Global safety styles to prevent any overflow */
-            * {
+            .article-detail-page * {
               max-width: 100vw !important;
             }
             
