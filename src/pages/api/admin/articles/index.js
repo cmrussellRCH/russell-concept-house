@@ -22,9 +22,10 @@ export default async function handler(req, res) {
   }
 
   const client = requireWriteClient()
+  const previewClient = client.withConfig({ perspective: 'previewDrafts' })
 
   if (req.method === 'GET') {
-    const articles = await client.fetch(
+    const articles = await previewClient.fetch(
       `*[_type == "article"] | order(coalesce(publishedAt, _updatedAt) desc) {
         _id,
         title,
@@ -110,6 +111,8 @@ export default async function handler(req, res) {
   const normalizedBodyHtml = bodyHtml ? String(bodyHtml) : ''
   const normalizedAvailableAtUrl = availableAtUrl ? String(availableAtUrl).trim() : ''
   const normalizedAvailableAtLabel = availableAtLabel ? String(availableAtLabel).trim() : ''
+  const normalizedVideoUrl = videoUrl ? String(videoUrl).trim() : ''
+  const normalizedVideoDuration = videoDuration ? String(videoDuration).trim() : ''
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
@@ -126,13 +129,23 @@ export default async function handler(req, res) {
     author: author ? String(author).trim() : 'Russell Concept House',
     body: normalizedBodyHtml ? htmlToPortableText(normalizedBodyHtml) : toPortableText(bodyText || ''),
     availableAtUrl: normalizedAvailableAtUrl || undefined,
-    availableAtLabel: normalizedAvailableAtUrl
-      ? (normalizedAvailableAtLabel || 'Available At')
-      : undefined,
+    availableAtLabel: isDraft
+      ? (normalizedAvailableAtLabel || undefined)
+      : normalizedAvailableAtUrl
+        ? (normalizedAvailableAtLabel || 'Available At')
+        : undefined,
     mediaType: resolvedMediaType,
-    videoUrl: resolvedMediaType === 'video' ? videoUrl || undefined : undefined,
-    videoDuration: resolvedMediaType === 'video' ? videoDuration || undefined : undefined,
-    galleryPublicIds: resolvedMediaType === 'video' ? [] : normalizedGallery,
+    videoUrl: isDraft
+      ? (normalizedVideoUrl || undefined)
+      : resolvedMediaType === 'video'
+        ? (normalizedVideoUrl || undefined)
+        : undefined,
+    videoDuration: isDraft
+      ? (normalizedVideoDuration || undefined)
+      : resolvedMediaType === 'video'
+        ? (normalizedVideoDuration || undefined)
+        : undefined,
+    galleryPublicIds: isDraft ? normalizedGallery : (resolvedMediaType === 'video' ? [] : normalizedGallery),
     tags: normalizedTags
   }
 
