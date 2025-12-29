@@ -306,6 +306,7 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
           border-radius: 12px;
           overflow: hidden;
           background: #f6f4f1;
+          position: relative;
         }
         .admin-image-card img {
           display: block;
@@ -329,9 +330,34 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
         .admin-image-actions {
           padding: 0.5rem;
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-start;
           align-items: center;
           font-size: 0.75rem;
+        }
+        .admin-image-remove {
+          position: absolute;
+          bottom: 0.5rem;
+          right: 0.5rem;
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          border: none;
+          background: rgba(180, 35, 24, 0.92);
+          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 14px rgba(29, 27, 25, 0.18);
+          cursor: pointer;
+          transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .admin-image-remove svg {
+          width: 14px;
+          height: 14px;
+        }
+        .admin-image-remove:hover {
+          background: #b42318;
+          transform: translateY(-1px);
         }
         .admin-inline-actions {
           display: flex;
@@ -383,6 +409,44 @@ export default function AdminLayout({ title, subtitle, actions, children }) {
         .admin-link {
           color: inherit;
           text-decoration: none;
+        }
+        .admin-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(29, 27, 25, 0.35);
+          backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 1.5rem;
+        }
+        .admin-modal {
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid rgba(29, 27, 25, 0.12);
+          box-shadow: 0 24px 60px rgba(18, 14, 10, 0.2);
+          max-width: 480px;
+          width: 100%;
+          padding: 1.5rem;
+        }
+        .admin-modal-header {
+          margin-bottom: 1rem;
+        }
+        .admin-modal-title {
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 500;
+        }
+        .admin-modal-body {
+          display: grid;
+          gap: 0.75rem;
+        }
+        .admin-modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.75rem;
+          margin-top: 0.5rem;
         }
         @media (max-width: 640px) {
           .admin-shell {

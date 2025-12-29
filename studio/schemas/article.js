@@ -20,22 +20,21 @@ export default {
       validation: Rule => Rule.required()
     },
     {
-      name: 'category',
+      name: 'categoryRef',
       title: 'Category',
+      type: 'reference',
+      to: [{ type: 'category' }],
+      validation: Rule => Rule.custom((value, context) => {
+        if (value || context.document?.category) return true
+        return 'Category is required'
+      })
+    },
+    {
+      name: 'category',
+      title: 'Legacy Category (auto)',
       type: 'string',
-      options: {
-        list: [
-          { title: 'Design', value: 'design' },
-          { title: 'Objects', value: 'objects' },
-          { title: 'Crafts', value: 'crafts' },
-          { title: 'Art', value: 'art' },
-          { title: 'Pottery', value: 'pottery' },
-          { title: 'Textiles', value: 'textiles' },
-          { title: 'Lifestyle', value: 'lifestyle' },
-          { title: 'Interior', value: 'interior' }
-        ]
-      },
-      validation: Rule => Rule.required()
+      hidden: true,
+      readOnly: true
     },
     {
       name: 'mainImage',
