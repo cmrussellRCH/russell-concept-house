@@ -179,6 +179,8 @@ export default function ArticlePage({ article }) {
   const designerName = formatDesignerName(brandName)
   const availableAtUrl = article.availableAtUrl || ''
   const availableAtLabel = article.availableAtLabel || 'Available At'
+  const categoryLabel = article.categoryRef?.title || article.category || 'Uncategorized'
+  const categoryDisplay = categoryLabel.toUpperCase()
   
   // Video profile setup
   const isVideoProfile = article?.mediaType === 'video' && article?.videoUrl
@@ -249,7 +251,7 @@ export default function ArticlePage({ article }) {
             </Link>
           </div>
           <div className="nav-right">
-            <span className="category">{isVideoProfile ? 'VIDEO' : 'ART'}</span>
+            <span className="category">{isVideoProfile ? 'VIDEO' : categoryDisplay}</span>
             <span className="divider">•</span>
             <span className="duration">
               {isVideoProfile ? article.videoDuration : calculateReadTime(article.body)}

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getOptimizedImageUrl } from '../../lib/cloudinary'
 import { slugify } from '../../lib/admin/articleUtils'
 import { portableTextToHtml } from '../../lib/admin/portableText'
 import RichTextEditor from './RichTextEditor'
 
-const CATEGORY_OPTIONS = [
+const DEFAULT_CATEGORY_OPTIONS = [
   { label: 'Design', value: 'design' },
   { label: 'Objects', value: 'objects' },
   { label: 'Crafts', value: 'crafts' },
@@ -38,6 +38,8 @@ export default function ArticleForm({
       title: initialArticle?.title || '',
       slug: initialArticle?.slug?.current || '',
       category: initialArticle?.category || 'design',
+      categoryId: initialArticle?.categoryRef?._id || '',
+      categoryLabel: initialArticle?.categoryRef?.title || '',
       mainImagePublicId: initialArticle?.mainImagePublicId || '',
       excerpt: initialArticle?.excerpt || '',
       publishedAt: publishedAt || toDateTimeLocal(),
@@ -58,6 +60,13 @@ export default function ArticleForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [clearMainImagePublicId, setClearMainImagePublicId] = useState(false)
   const [widgetReady, setWidgetReady] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
+  const [categoriesError, setCategoriesError] = useState('')
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryError, setNewCategoryError] = useState('')
+  const [isSavingCategory, setIsSavingCategory] = useState(false)
 
   const existingMainImageUrl = initialArticle?.mainImage?.asset?.url || ''
   const existingGalleryUrls = (initialArticle?.gallery || []).map(image => image?.asset?.url).filter(Boolean)
@@ -92,6 +101,119 @@ export default function ArticleForm({
       }
     }
   }, [])
+
+  const fetchCategories = useCallback(async (signal) => {
+    setCategoriesLoading(true)
+    setCategoriesError('')
+    try {
+      const response = await fetch('/api/admin/categories', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        signal
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Unable to load categories.')
+      }
+      const data = await response.json()
+      setCategories(Array.isArray(data.categories) ? data.categories : [])
+    } catch (loadError) {
+      if (loadError.name === 'AbortError') return
+      setCategoriesError(loadError.message || 'Unable to load categories.')
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchCategories(controller.signal)
+    return () => {
+      controller.abort()
+    }
+  }, [fetchCategories])
+
+  const categoryOptions = useMemo(() => {
+    const seen = new Set()
+    const normalized = []
+    const fromApi = categories.map(category => ({
+      id: category._id,
+      label: category.title,
+      value: category.slug?.current || category.slug || slugify(category.title)
+    }))
+    const combined = [...fromApi, ...DEFAULT_CATEGORY_OPTIONS]
+    combined.forEach(option => {
+      if (!option?.value || seen.has(option.value)) return
+      seen.add(option.value)
+      normalized.push(option)
+    })
+    if (form.category && !seen.has(form.category)) {
+      normalized.push({
+        id: form.categoryId || '',
+        label: form.categoryLabel || form.category,
+        value: form.category
+      })
+    }
+    return normalized
+  }, [categories, form.category, form.categoryId, form.categoryLabel])
+
+  const handleAddCategory = () => {
+    setNewCategoryName('')
+    setNewCategoryError('')
+    setIsCategoryModalOpen(true)
+  }
+
+  const handleCloseCategoryModal = () => {
+    if (isSavingCategory) return
+    setIsCategoryModalOpen(false)
+  }
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name) {
+      setNewCategoryError('Category name is required.')
+      return
+    }
+    setIsSavingCategory(true)
+    setNewCategoryError('')
+    try {
+      const response = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ title: name })
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Unable to add category.')
+      }
+      const data = await response.json()
+      const created = data.category
+      if (created) {
+        setCategories(prev => {
+          const next = [...prev]
+          const exists = next.some(item => item._id === created._id)
+          if (!exists) next.push(created)
+          return next
+        })
+        const slugValue = created.slug?.current || created.slug
+        if (slugValue) {
+          setForm(prev => ({
+            ...prev,
+            category: slugValue,
+            categoryId: created._id || '',
+            categoryLabel: created.title || ''
+          }))
+        }
+      }
+      await fetchCategories()
+      setIsCategoryModalOpen(false)
+    } catch (createError) {
+      setNewCategoryError(createError.message || 'Unable to add category.')
+    } finally {
+      setIsSavingCategory(false)
+    }
+  }
 
   const canUpload = Boolean(cloudName && uploadPreset && widgetReady)
 
@@ -203,12 +325,33 @@ export default function ArticleForm({
             id="category"
             className="admin-select"
             value={form.category}
-            onChange={(event) => setForm({ ...form, category: event.target.value })}
+            onChange={(event) => {
+              const { value } = event.target
+              if (value === '__add__') {
+                handleAddCategory()
+                return
+              }
+              const selected = categoryOptions.find(option => option.value === value)
+              setForm({
+                ...form,
+                category: value,
+                categoryId: selected?.id || '',
+                categoryLabel: selected?.label || ''
+              })
+            }}
           >
-            {CATEGORY_OPTIONS.map(option => (
+            <option value="" disabled>Select a category</option>
+            {categoryOptions.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
+            <option value="__add__">Add Category…</option>
           </select>
+          {categoriesLoading && (
+            <p className="admin-note">Loading categories…</p>
+          )}
+          {categoriesError && (
+            <p className="admin-note" style={{ color: '#b42318' }}>{categoriesError}</p>
+          )}
         </div>
         <div className="admin-field">
           <label className="admin-label" htmlFor="publishedAt">Published At</label>
@@ -273,7 +416,7 @@ export default function ArticleForm({
 
       <div className="admin-grid admin-media-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
         <div className="admin-field">
-          <label className="admin-label">Main Image (Cloudinary)</label>
+          <label className="admin-label">Main Image</label>
           <div className="admin-inline-actions">
             <button
               type="button"
@@ -286,18 +429,6 @@ export default function ArticleForm({
             >
               Upload main image
             </button>
-            {form.mainImagePublicId && (
-              <button
-                type="button"
-                className="admin-button secondary"
-                onClick={() => {
-                  setClearMainImagePublicId(true)
-                  setForm({ ...form, mainImagePublicId: '' })
-                }}
-              >
-                Clear Cloudinary image
-              </button>
-            )}
           </div>
           {!canUpload && (
             <p className="admin-note">Cloudinary upload requires NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.</p>
@@ -306,9 +437,21 @@ export default function ArticleForm({
             <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
               {mainImagePreview && (
                 <div>
-                  <p className="admin-label" style={{ marginBottom: '0.5rem' }}>Cloudinary preview</p>
                   <div className="admin-image-card hero">
                     <img src={mainImagePreview} alt="Cloudinary preview" />
+                    <button
+                      type="button"
+                      className="admin-image-remove"
+                      aria-label="Remove main image"
+                      onClick={() => {
+                        setClearMainImagePublicId(true)
+                        setForm({ ...form, mainImagePublicId: '' })
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
@@ -352,7 +495,7 @@ export default function ArticleForm({
             </>
           ) : (
             <>
-              <label className="admin-label">Gallery Images (Cloudinary)</label>
+              <label className="admin-label">Gallery Images</label>
               <div className="admin-inline-actions">
                 <button
                   type="button"
@@ -367,35 +510,29 @@ export default function ArticleForm({
                 >
                   Add gallery images
                 </button>
-                {form.galleryPublicIds.length > 0 && (
-                  <button
-                    type="button"
-                    className="admin-button secondary"
-                    onClick={() => setForm({ ...form, galleryPublicIds: [] })}
-                  >
-                    Clear gallery
-                  </button>
-                )}
               </div>
               {galleryPreviews.length > 0 && (
                 <div className="admin-image-grid">
                   {galleryPreviews.map((src, index) => (
                     <div className="admin-image-card full" key={`${src}-${index}`}>
                       <img src={src} alt={`Gallery ${index + 1}`} />
+                      <button
+                        type="button"
+                        className="admin-image-remove"
+                        aria-label={`Remove gallery image ${index + 1}`}
+                        onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            galleryPublicIds: prev.galleryPublicIds.filter((_, idx) => idx !== index)
+                          }))
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </button>
                       <div className="admin-image-actions">
                         <span>Image {index + 1}</span>
-                        <button
-                          type="button"
-                          className="admin-button secondary"
-                          onClick={() => {
-                            setForm(prev => ({
-                              ...prev,
-                              galleryPublicIds: prev.galleryPublicIds.filter((_, idx) => idx !== index)
-                            }))
-                          }}
-                        >
-                          Remove
-                        </button>
                       </div>
                     </div>
                   ))}
@@ -497,6 +634,54 @@ export default function ArticleForm({
           </button>
         )}
       </div>
+      {isCategoryModalOpen && (
+        <div className="admin-modal-overlay" role="presentation" onClick={handleCloseCategoryModal}>
+          <div
+            className="admin-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-add-category-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="admin-modal-header">
+              <h2 className="admin-modal-title" id="admin-add-category-title">Add Category</h2>
+            </div>
+            <div className="admin-modal-body">
+              <label className="admin-label" htmlFor="newCategoryName">Category name</label>
+              <input
+                id="newCategoryName"
+                className="admin-input"
+                value={newCategoryName}
+                onChange={(event) => setNewCategoryName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    handleCreateCategory()
+                  }
+                }}
+                placeholder="Lighting"
+                autoFocus
+              />
+              {newCategoryError && (
+                <p className="admin-note" style={{ color: '#b42318' }}>{newCategoryError}</p>
+              )}
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-button secondary"
+                  onClick={handleCloseCategoryModal}
+                  disabled={isSavingCategory}
+                >
+                  Cancel
+                </button>
+                <button type="button" className="admin-button" disabled={isSavingCategory} onClick={handleCreateCategory}>
+                  {isSavingCategory ? 'Adding...' : 'Add Category'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }

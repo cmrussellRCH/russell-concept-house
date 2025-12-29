@@ -163,6 +163,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                 : null
               const isActive = activeId === article._id
               const isDraft = article._id.startsWith('drafts.')
+              const categoryLabel = article.categoryRef?.title || article.category || 'uncategorized'
 
               return (
                 <Link
@@ -181,7 +182,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                     <div className="admin-row-title">{article.title}</div>
                     <div className="admin-row-meta">
                       {isDraft && <span className="admin-badge warning">Draft</span>}
-                      <span className="admin-badge">{article.category || 'uncategorized'}</span>
+                      <span className="admin-badge">{categoryLabel}</span>
                       {article.mediaType && <span className="admin-badge">{article.mediaType}</span>}
                       {article.publishedAt && (
                         <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
@@ -251,6 +252,7 @@ export async function getServerSideProps({ req, query }) {
       title,
       slug,
       category,
+      categoryRef->{ _id, title, slug },
       mediaType,
       publishedAt,
       _updatedAt,
@@ -270,6 +272,7 @@ export async function getServerSideProps({ req, query }) {
         title,
         slug,
         category,
+        categoryRef->{ _id, title, slug },
         mainImagePublicId,
         mainImage { asset-> { url } },
         excerpt,

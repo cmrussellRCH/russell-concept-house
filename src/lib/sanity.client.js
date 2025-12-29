@@ -89,6 +89,7 @@ export async function getArticles(limit = null) {
         publishedAt,
         excerpt,
         category,
+        categoryRef->{ title, slug },
         author,
         mediaType,
         mainImagePublicId,
@@ -108,6 +109,7 @@ export async function getArticles(limit = null) {
         publishedAt,
         excerpt,
         category,
+        categoryRef->{ title, slug },
         author,
         mediaType,
         mainImagePublicId,
@@ -133,6 +135,7 @@ export async function getArticleBySlug(slug) {
     publishedAt,
     excerpt,
     category,
+    categoryRef->{ title, slug },
     author->{
       name
     },

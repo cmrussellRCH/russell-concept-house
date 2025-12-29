@@ -108,11 +108,16 @@ export default function ArticlesPage({ articles }) {
   }, [])
 
   // Get unique categories from articles
-  const allCategories = ['all', ...new Set(articles.map(a => a.category).filter(Boolean).filter(cat => cat.toLowerCase() !== 'conversations'))]
+  const allCategories = ['all', ...new Set(
+    articles
+      .map(article => article.categoryRef?.slug?.current || article.category)
+      .filter(Boolean)
+      .filter(cat => cat.toLowerCase() !== 'conversations')
+  )]
   
   const filteredArticles = selectedCategory === 'all' 
     ? articles 
-    : articles.filter(article => article.category === selectedCategory)
+    : articles.filter(article => (article.categoryRef?.slug?.current || article.category) === selectedCategory)
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' }
@@ -169,7 +174,7 @@ export default function ArticlesPage({ articles }) {
                   <div className="category-filter-wrapper lg:contents">
                     <div className="categories-container">
                       <span className="categories-label">
-                        {selectedCategory === 'all' ? 'All' : selectedCategory.toUpperCase()}
+                        {selectedCategory === 'all' ? 'Categories' : selectedCategory.toUpperCase()}
                       </span>
                       <div className="category-list">
                         {allCategories.map((cat) => (
@@ -246,7 +251,7 @@ export default function ArticlesPage({ articles }) {
                             {formatTitle(article.title)}
                           </h2>
                           <div className="article-meta">
-                            <span>{article.category?.toUpperCase() || 'UNCATEGORIZED'}</span>
+                            <span>{(article.categoryRef?.title || article.category || 'Uncategorized').toUpperCase()}</span>
                             <span>{formatDate(article.publishedAt)}</span>
                             {article.mediaType === 'video' && <span>VIDEO</span>}
                           </div>

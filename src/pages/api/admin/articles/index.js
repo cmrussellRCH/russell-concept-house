@@ -2,18 +2,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { requireAdminSession } from '../../../../lib/admin/session'
 import { requireWriteClient } from '../../../../lib/sanity.server'
 import { parseTags, slugify, toPortableText } from '../../../../lib/admin/articleUtils'
+import { resolveCategory } from '../../../../lib/admin/categoryUtils'
 import { htmlToPortableText } from '../../../../lib/admin/portableText.server'
-
-const CATEGORY_OPTIONS = [
-  'design',
-  'objects',
-  'crafts',
-  'art',
-  'pottery',
-  'textiles',
-  'lifestyle',
-  'interior'
-]
 
 export default async function handler(req, res) {
   const session = requireAdminSession(req)
@@ -32,6 +22,7 @@ export default async function handler(req, res) {
         slug,
         publishedAt,
         category,
+        categoryRef->{ _id, title, slug },
         mediaType,
         _updatedAt,
         mainImagePublicId,
@@ -53,6 +44,8 @@ export default async function handler(req, res) {
     title,
     slug,
     category,
+    categoryId,
+    categoryLabel,
     excerpt,
     publishedAt,
     author,
@@ -71,16 +64,12 @@ export default async function handler(req, res) {
 
   const isDraft = status === 'draft'
 
-  if (!title || !category) {
+  if (!title || (!category && !categoryId)) {
     return res.status(400).json({ error: 'Title and category are required.' })
   }
 
   if (!isDraft && !mainImagePublicId) {
     return res.status(400).json({ error: 'Cloudinary main image is required.' })
-  }
-
-  if (!CATEGORY_OPTIONS.includes(category)) {
-    return res.status(400).json({ error: 'Invalid category.' })
   }
 
   const normalizedSlug = slugify(slug || title)
@@ -116,13 +105,27 @@ export default async function handler(req, res) {
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
+  const resolvedCategory = await resolveCategory(client, {
+    categoryId,
+    categorySlug: category,
+    categoryLabel
+  })
+
+  if (!resolvedCategory) {
+    return res.status(400).json({ error: 'Category is required.' })
+  }
+
+  const resolvedCategorySlug = resolvedCategory.slug?.current || slugify(categoryLabel || category)
 
   const document = {
     _id: isDraft ? `drafts.${uuidv4()}` : undefined,
     _type: 'article',
     title: String(title).trim(),
     slug: { _type: 'slug', current: normalizedSlug },
-    category,
+    category: resolvedCategorySlug,
+    categoryRef: resolvedCategory?._id
+      ? { _type: 'reference', _ref: resolvedCategory._id }
+      : undefined,
     mainImagePublicId: mainImagePublicId ? String(mainImagePublicId).trim() : undefined,
     excerpt: excerpt ? String(excerpt).trim() : undefined,
     publishedAt: normalizedPublishedAt,
