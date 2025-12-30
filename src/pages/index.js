@@ -13,12 +13,17 @@ export default function Home({ articles, setTopImageUrl }) {
     if (width < 1024) return 2
     return 3
   })
+  const [hasScrolled, setHasScrolled] = useState(false)
+  const cardRefs = useRef(new Map())
   const containerRef = useRef(null)
   const imageRefs = useRef({})
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
+      if (!hasScrolled && window.scrollY > 0) {
+        setHasScrolled(true)
+      }
       
       // Find which image is at the top of the viewport
       let topImage = null
@@ -49,7 +54,7 @@ export default function Home({ articles, setTopImageUrl }) {
     window.addEventListener('scroll', handleScroll)
     handleScroll() // Initial check
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [articles, setTopImageUrl])
+  }, [articles, setTopImageUrl, hasScrolled])
 
   // Calculate column count based on screen width
   useEffect(() => {
@@ -79,6 +84,35 @@ export default function Home({ articles, setTopImageUrl }) {
     })
     setLoadedImages(dimensions)
   }, [articles])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!hasScrolled) return
+    if (!('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+          } else {
+            entry.target.classList.remove('is-visible')
+          }
+        })
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px -35% 0px',
+        threshold: 0.2
+      }
+    )
+
+    cardRefs.current.forEach((node) => {
+      if (node) observer.observe(node)
+    })
+
+    return () => observer.disconnect()
+  }, [hasScrolled, articles, columnCount, loadedImages])
 
   // Distribute articles into columns using a balanced approach
   const distributeArticles = () => {
@@ -144,7 +178,14 @@ export default function Home({ articles, setTopImageUrl }) {
                   <Link
                     key={article._id}
                     href={`/articles/${article.slug.current}`}
-                    className="relative overflow-hidden group cursor-pointer animate-fadeIn"
+                    className="relative overflow-hidden group cursor-pointer animate-fadeIn home-card"
+                    ref={(node) => {
+                      if (node) {
+                        cardRefs.current.set(article._id, node)
+                      } else {
+                        cardRefs.current.delete(article._id)
+                      }
+                    }}
                   >
                     <div 
                       className="relative w-full"
@@ -194,8 +235,8 @@ export default function Home({ articles, setTopImageUrl }) {
                         } transition-transform duration-700 group-hover:scale-[1.02]`}></div>
                       )}
                       
-                      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 lg:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 lg:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-overlay">
+                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 home-card-overlay-content">
                           <p className="text-white/90 text-xs tracking-widest mb-2">
                             {article.category?.toUpperCase() || 'ARTICLE'} • {formatDate(article.publishedAt)}
                           </p>
