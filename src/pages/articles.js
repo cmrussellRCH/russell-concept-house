@@ -205,6 +205,7 @@ export default function ArticlesPage({ articles }) {
                 }}
               >
                 {filteredArticles.map((article, index) => {
+                  const displayIndex = filteredArticles.length - index
                   const mainImageSource = article.mainImagePublicId || article.mainImage
                   const isCloudinarySource = typeof mainImageSource === 'string'
                     || isCloudinaryUrl(mainImageSource?.asset?.url)
@@ -228,7 +229,7 @@ export default function ArticlesPage({ articles }) {
                       >
                       <div className="article-inner">
                         <span className="article-number">
-                          {String(index + 1).padStart(2, '0')}
+                          {String(displayIndex).padStart(2, '0')}
                         </span>
                         
                         <div className="article-main">
