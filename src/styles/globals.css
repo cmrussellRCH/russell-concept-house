@@ -62,20 +62,22 @@ html {
 
 @layer utilities {
   @media (hover: none) and (pointer: coarse) {
+    .home-card {
+      --reveal-opacity: 0;
+      --reveal-translate: 16px;
+    }
+
     .home-card .home-card-overlay {
-      opacity: 0;
+      opacity: var(--reveal-opacity, 0);
     }
 
     .home-card .home-card-overlay-content {
-      transform: translateY(16px);
+      transform: translateY(var(--reveal-translate, 16px));
     }
 
-    .home-card.is-visible .home-card-overlay {
-      opacity: 1;
-    }
-
-    .home-card.is-visible .home-card-overlay-content {
-      transform: translateY(0);
+    .home-card.is-visible {
+      --reveal-opacity: 1;
+      --reveal-translate: 0px;
     }
   }
 
