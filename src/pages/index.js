@@ -60,8 +60,8 @@ export default function Home({ articles, setTopImageUrl }) {
 
       const header = document.querySelector('.mobile-nav-header')
       const headerHeight = header ? header.getBoundingClientRect().height : 80
-      const fadeEnd = headerHeight + 60
-      const fadeStart = fadeEnd + 240
+      const fadeEnd = headerHeight + 80
+      const fadeStart = fadeEnd + 260
 
       visibleCardsRef.current.forEach((node) => {
         if (!node || !node.getBoundingClientRect) return

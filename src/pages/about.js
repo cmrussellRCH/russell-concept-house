@@ -1,10 +1,9 @@
 import Head from 'next/head'
-import Link from 'next/link'
 
 export default function About() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'About Russell Concept House'
-  const pageDescription = 'Russell Concept House curates objects that balance timeless beauty with thoughtful functionality, supporting designers who honor craftsmanship and innovation.'
+  const pageDescription = 'Russell Concept House is an online publication, archive, and storefront dedicated to handcrafted objects and the people who make them.'
   return (
     <>
       <Head>
@@ -23,50 +22,64 @@ export default function About() {
       </Head>
       
 
-      {/* About Us */}
+      {/* Why We're Here */}
       <section className="content-section" style={{ background: '#fafafa', padding: '11rem 0 4rem' }}>
         <div className="container-custom">
-          <h2 className="section-title">About Us</h2>
+          <h2 className="section-title">Why We&apos;re Here</h2>
           <div className="story-grid">
             <div className="story-content">
               <p>
-                Russell Concept House (RCH) curates beautiful objects sourced from the best designers in the world. We don&apos;t curate for aesthetic beauty alone; we believe the objects we surround ourselves with should inspire and elevate our daily lives.
+                Russell Concept House is an online publication, archive, and storefront dedicated to handcrafted objects and the people who make them. We feature work from independent designers and studios around the world, including furniture, lighting, ceramics, glassware, textiles, and more.
               </p>
               <p>
-                Good design imbues ordinary moments with a sense of grace, grounding us in the present and offering a reprieve from the relentless pace of modern life. At RCH, we champion objects that blend timeless beauty with thoughtful functionality, supporting creative minds who honor traditional craftsmanship while embracing innovation.
+                We&apos;re drawn to work where the maker&apos;s hand is evident. Pieces shaped by intention, material knowledge, and years of refinement. What we feature isn&apos;t chosen for aesthetic appeal alone. Each piece represents someone&apos;s practice, their particular way of seeing and working. We look for objects that carry that weight. Things you can feel were made by someone, for someone.
               </p>
               <p>
-                Each piece in our collection is chosen not just for its visual appeal, but for its ability to inspire, calm, and transform the spaces we inhabit. We celebrate designers who understand that true luxury lies not in excess, but in the quiet confidence of well-crafted simplicity.
+                RCH is a place to discover new makers, revisit established ones, and build a reference for design that&apos;s built to last. Soon, it will also be a place to bring those pieces home.
+              </p>
+              <p>
+                <em>Founded by Colleen Russell, 2022</em>
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Our Values */}
-      <section className="content-section" style={{ background: '#fafafa', padding: '3.5rem 0 4rem' }}>
+      {/* Conversations */}
+      <section className="content-section" style={{ background: '#fafafa', padding: '2rem 0 4rem' }}>
         <div className="container-custom">
-          <h2 className="section-title">Our Values</h2>
+          <h2 className="section-title">Conversations</h2>
+          <div className="story-grid">
+            <div className="story-content">
+              <p>
+                We don&apos;t just feature finished work. We go deeper. Our Conversations series documents how things get made: the material choices, the false starts, the decisions that shape a final piece. Through short films and personal interviews, we explore process as much as product. The journey often reveals more than the destination.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What Guides Us */}
+      <section className="content-section" style={{ background: '#fafafa', padding: '2rem 0 4rem' }}>
+        <div className="container-custom">
+          <h2 className="section-title">What Guides Us</h2>
           <div className="values-grid">
             <div className="value-card">
-              <div className="value-number">01</div>
-              <h3 className="value-title">Quality Over Quantity</h3>
+              <h3 className="value-title"><em>Fewer, Better</em></h3>
               <p className="value-description">
-                We believe in owning fewer, better things. Each piece should be worthy of the space it occupies in your life.
+                We&apos;d rather show ten things we believe in than a hundred we don&apos;t. Every piece here has earned its place.
               </p>
             </div>
             <div className="value-card">
-              <div className="value-number">02</div>
-              <h3 className="value-title">Sustainable Practice</h3>
+              <h3 className="value-title"><em>Made to Last</em></h3>
               <p className="value-description">
-                Environmental consciousness guides our selections. We prioritize materials and methods that respect our planet.
+                We seek work that will matter in ten years, not ten weeks. Design that outlives trends because it was never beholden to them.
               </p>
             </div>
             <div className="value-card">
-              <div className="value-number">03</div>
-              <h3 className="value-title">Timeless Design</h3>
+              <h3 className="value-title"><em>Process Over Product</em></h3>
               <p className="value-description">
-                Trends come and go, but good design endures. We seek pieces that will be as relevant tomorrow as they are today.
+                The story of how something was made is part of what it is. We&apos;re as interested in the making as the made.
               </p>
             </div>
           </div>
