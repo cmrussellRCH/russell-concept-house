@@ -6,7 +6,13 @@ import { getArticles, urlFor } from '../lib/sanity.client'
 export default function Home({ articles, setTopImageUrl }) {
   const [scrolled, setScrolled] = useState(false)
   const [loadedImages, setLoadedImages] = useState({})
-  const [columnCount, setColumnCount] = useState(3)
+  const [columnCount, setColumnCount] = useState(() => {
+    if (typeof window === 'undefined') return 3
+    const width = window.innerWidth
+    if (width < 640) return 1
+    if (width < 1024) return 2
+    return 3
+  })
   const containerRef = useRef(null)
   const imageRefs = useRef({})
 
@@ -49,9 +55,8 @@ export default function Home({ articles, setTopImageUrl }) {
   useEffect(() => {
     const updateColumnCount = () => {
       const width = window.innerWidth
-      if (width < 640) setColumnCount(1)
-      else if (width < 1024) setColumnCount(2)
-      else setColumnCount(3)
+      const nextCount = width < 640 ? 1 : width < 1024 ? 2 : 3
+      setColumnCount(prev => (prev === nextCount ? prev : nextCount))
     }
     
     updateColumnCount()
