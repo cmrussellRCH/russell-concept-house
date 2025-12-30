@@ -71,6 +71,10 @@ html {
       opacity: var(--reveal-opacity, 0);
     }
 
+    .home-card .home-card-gradient {
+      opacity: var(--reveal-opacity, 0);
+    }
+
     .home-card .home-card-overlay-content {
       transform: translateY(var(--reveal-translate, 16px));
     }

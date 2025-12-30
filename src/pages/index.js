@@ -60,8 +60,8 @@ export default function Home({ articles, setTopImageUrl }) {
 
       const header = document.querySelector('.mobile-nav-header')
       const headerHeight = header ? header.getBoundingClientRect().height : 80
-      const fadeEnd = headerHeight + 40
-      const fadeStart = fadeEnd + 210
+      const fadeEnd = headerHeight + 60
+      const fadeStart = fadeEnd + 240
 
       visibleCardsRef.current.forEach((node) => {
         if (!node || !node.getBoundingClientRect) return
@@ -262,7 +262,7 @@ export default function Home({ articles, setTopImageUrl }) {
                           })
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-gradient"></div>
                     </>
                   ) : (
                     <div className={`absolute inset-0 bg-gradient-to-br ${
@@ -344,7 +344,7 @@ export default function Home({ articles, setTopImageUrl }) {
                               })
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-gradient"></div>
                         </>
                       ) : (
                         <div className={`absolute inset-0 bg-gradient-to-br ${
