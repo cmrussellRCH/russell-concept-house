@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
-export default function Home({ articles, setTopImageUrl }) {
-  const [scrolled, setScrolled] = useState(false)
+export default function Home({ articles }) {
   const [loadedImages, setLoadedImages] = useState({})
   const [isMobileView, setIsMobileView] = useState(false)
   const [columnCount, setColumnCount] = useState(() => {
@@ -18,40 +17,11 @@ export default function Home({ articles, setTopImageUrl }) {
   const mobileCardRefs = useRef(new Map())
   const visibleCardsRef = useRef(new Set())
   const containerRef = useRef(null)
-  const mobileImageRefs = useRef({})
-  const desktopImageRefs = useRef({})
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
       if (!hasScrolled && window.scrollY > 0) {
         setHasScrolled(true)
-      }
-      
-      // Find which image is at the top of the viewport
-      let topImage = null
-      let minDistance = Infinity
-      const imageMap = isMobileView ? mobileImageRefs.current : desktopImageRefs.current
-      
-      Object.entries(imageMap).forEach(([articleId, ref]) => {
-        if (ref && ref.getBoundingClientRect) {
-          const rect = ref.getBoundingClientRect()
-          const distance = Math.abs(rect.top)
-          
-          // Check if image is visible and closer to top
-          if (rect.bottom > 0 && distance < minDistance) {
-            minDistance = distance
-            const article = articles.find(a => a._id === articleId)
-            const mainImageSource = article?.mainImagePublicId || article?.mainImage
-            if (mainImageSource) {
-              topImage = urlFor(mainImageSource).width(800).url()
-            }
-          }
-        }
-      })
-      
-      if (setTopImageUrl) {
-        setTopImageUrl(topImage)
       }
 
       if (!isMobileView || visibleCardsRef.current.size === 0) {
@@ -77,7 +47,7 @@ export default function Home({ articles, setTopImageUrl }) {
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll() // Initial check
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [articles, setTopImageUrl, hasScrolled, isMobileView])
+  }, [hasScrolled, isMobileView])
 
   // Calculate column count based on screen width
   useEffect(() => {
@@ -235,7 +205,6 @@ export default function Home({ articles, setTopImageUrl }) {
                   {hasImage ? (
                     <>
                       <img
-                        ref={el => mobileImageRefs.current[article._id] = el}
                         src={urlFor(mainImageSource)
                           .width(800)
                           .quality(85)
@@ -317,7 +286,6 @@ export default function Home({ articles, setTopImageUrl }) {
                       {hasImage ? (
                         <>
                           <img
-                            ref={el => desktopImageRefs.current[article._id] = el}
                             src={urlFor(mainImageSource)
                               .width(800)
                               .quality(85)
