@@ -23,7 +23,6 @@ const playfair = Playfair_Display({
 })
 
 export default function App({ Component, pageProps }) {
-  const [topImageUrl, setTopImageUrl] = useState(null)
   const [isNavigating, setIsNavigating] = useState(false)
   const router = useRouter()
   
@@ -56,13 +55,12 @@ export default function App({ Component, pageProps }) {
   return (
     <div className={`${inter.variable} ${playfair.variable} ${isNavigating ? 'is-navigating' : ''}`}>
       <Layout 
-        topImageUrl={topImageUrl}
         isDarkPage={isDarkPage}
         isDetailPage={isDetailPage}
         isVideoProfile={isVideoProfile}
         isHomePage={isHomePage}
       >
-        <Component {...pageProps} setTopImageUrl={setTopImageUrl} />
+        <Component {...pageProps} />
       </Layout>
     </div>
   )

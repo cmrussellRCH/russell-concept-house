@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 
-export default function Layout({ children, topImageUrl, hideHeader = false, isVideoProfile = false, isDetailPage = false, isDarkPage: isDarkPageProp = false, isHomePage: isHomePageProp = false }) {
+export default function Layout({ children, hideHeader = false, isVideoProfile = false, isDetailPage = false, isDarkPage: isDarkPageProp = false, isHomePage: isHomePageProp = false }) {
   const router = useRouter()
   const isHomePage = isHomePageProp || router.pathname === '/'
   const isArticlesPage = router.pathname === '/articles'
@@ -10,7 +10,6 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
   // Use the isDarkPage prop if provided, otherwise fall back to existing logic
   const isDarkPage = isDarkPageProp || isConversationsPage || isVideoProfile
   const [scrolled, setScrolled] = useState(false)
-  const [imageBrightness, setImageBrightness] = useState(0.5)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -26,50 +25,24 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
     setMobileMenuOpen(false)
   }, [router.pathname])
 
-  // Analyze image brightness when top image changes
-  useEffect(() => {
-    if (topImageUrl && isHomePage) {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        canvas.width = 1
-        canvas.height = 1
-        ctx.drawImage(img, 0, 0, 1, 1)
-        
-        const pixel = ctx.getImageData(0, 0, 1, 1).data
-        const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3
-        setImageBrightness(brightness / 255)
-      }
-      img.src = topImageUrl
-    }
-  }, [topImageUrl, isHomePage])
-
-  const isDark = imageBrightness < 0.5
-  
   // Dynamic classes for homepage and dark pages
   const logoClasses = isDarkPage
     ? 'text-2xl font-light font-serif tracking-wide text-white hover:text-gray-200 transition-colors duration-600 ease-in-out'
     : isHomePage 
-    ? `text-2xl font-light font-serif tracking-wide transition-colors duration-600 ease-in-out ${
-        scrolled ? 'text-black-olive' : (isDark ? 'text-white' : 'text-black-olive')
-      }`
+    ? 'text-2xl font-light font-serif tracking-wide text-black-olive hover:text-dim-gray transition-colors duration-600 ease-in-out'
     : 'text-2xl font-light font-serif tracking-wide text-black-olive hover:text-dim-gray transition-colors duration-600 ease-in-out'
     
   const linkClasses = isDarkPage
     ? 'text-sm tracking-wider text-white hover:text-gray-200 transition-colors duration-600 ease-in-out'
     : isHomePage
-    ? `text-sm tracking-wider transition-colors duration-600 ease-in-out ${
-        scrolled ? 'text-dim-gray hover:text-black-olive' : (isDark ? 'text-white hover:text-gray-200' : 'text-dim-gray hover:text-black-olive')
-      }`
+    ? 'text-sm tracking-wider text-dim-gray hover:text-black-olive transition-colors duration-600 ease-in-out'
     : 'text-sm tracking-wider text-dim-gray hover:text-black-olive transition-colors duration-600 ease-in-out'
 
   const navClasses = isDarkPage
     ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header'
     : isHomePage
-    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/85 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-in-out mobile-nav-header ${
-        scrolled ? 'shadow-sm scrolled' : ''
+    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/70 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-900 ease-out mobile-nav-header ${
+        scrolled ? 'bg-seasalt/90 shadow-sm scrolled' : ''
       }`
     : isArticlesPage
     ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
@@ -301,7 +274,7 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
             background-color: rgba(45, 43, 41, 0.95) !important;
           }
           
-          /* Articles page specific - 75% opacity on mobile */
+          /* Articles page specific - transparent nav on mobile */
           .articles-page-nav {
             background-color: transparent !important;
             backdrop-filter: none;
@@ -311,10 +284,22 @@ export default function Layout({ children, topImageUrl, hideHeader = false, isVi
           .articles-page-nav.scrolled {
             box-shadow: none;
           }
+
+          /* Home page nav keeps frosted background on mobile */
+          .home-page-nav {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
+
+          .home-page-nav.scrolled {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+          }
         }
       `}</style>
       {!isDetailPage && (
-        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''}`}>
+        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isHomePage ? 'home-page-nav' : ''}`}>
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">
               <Link href="/" className="logo-wrapper">
