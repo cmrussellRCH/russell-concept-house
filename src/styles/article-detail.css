@@ -1,7 +1,7 @@
 
           /* Article-specific page styles */
           .article-detail-page {
-            background: #fcfcfc;
+            background: #fbfbfa;
             color: #000;
             min-height: 100vh;
           }
@@ -65,7 +65,7 @@
           
           /* Image box component - now full height */
           .image-box {
-            background: #f8f8f8;
+            background: #fbfbfa;
             min-height: 100vh;
             padding: 2rem;
             border-radius: 0;
@@ -133,7 +133,7 @@
           
           /* Light theme for regular articles */
           .detail-nav.light {
-            background: rgba(255, 255, 255, 0.95);
+            background: #fbfbfa;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
           }
           
@@ -373,7 +373,7 @@
           /* Image gallery styles for non-video articles */
           .image-gallery-section {
             margin: 3rem 0;
-            background: #f8f8f8;
+            background: #fbfbfa;
             padding: 3rem 0;
             width: 100vw;
             margin-left: calc(-50vw + 50%);
@@ -410,7 +410,7 @@
           .image-counter {
             font-size: 0.875rem;
             color: #666;
-            background: rgba(255, 255, 255, 0.9);
+            background: #fbfbfa;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-family: var(--font-inter), sans-serif;

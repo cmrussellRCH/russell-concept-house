@@ -6,6 +6,7 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
   const router = useRouter()
   const isHomePage = isHomePageProp || router.pathname === '/'
   const isArticlesPage = router.pathname === '/articles'
+  const isArticleDetail = router.pathname === '/articles/[slug]'
   const isConversationsPage = router.pathname === '/conversations'
   // Use the isDarkPage prop if provided, otherwise fall back to existing logic
   const isDarkPage = isDarkPageProp || isConversationsPage || isVideoProfile
@@ -427,12 +428,12 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
       {!isHomePage && (
         <footer
           className={`border-t mt-24 ${isDarkPage ? 'bg-[#2d2b29] border-white/10' : 'border-silver'}`}
-          style={isArticlesPage ? { backgroundColor: '#fbfbfa' } : undefined}
+          style={isArticlesPage || isArticleDetail ? { backgroundColor: '#fbfbfa' } : undefined}
         >
           <div className="container-custom py-12">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className={`text-sm mb-4 md:mb-0 ${isDarkPage ? 'text-white/60' : 'text-dim-gray'}`}>
-                © 2025 Russell Concept House. All rights reserved.
+                © 2026 Russell Concept House. All rights reserved.
               </p>
               <div className="flex space-x-6">
                 <a href="https://www.instagram.com/russellconcepthouse" target="_blank" rel="noopener noreferrer" className={`text-sm transition-colors ${isDarkPage ? 'text-white/60 hover:text-white' : 'text-dim-gray hover:text-black-olive'}`}>
