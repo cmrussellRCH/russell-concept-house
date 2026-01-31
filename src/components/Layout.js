@@ -300,7 +300,7 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
       {!isDetailPage && (
         <header
           className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isHomePage ? 'home-page-nav' : ''}`}
-          style={isHomePage || isArticlesPage ? { backgroundColor: '#fbfbfa' } : undefined}
+          style={isHomePage ? { backgroundColor: '#fbfbfa' } : undefined}
         >
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">
