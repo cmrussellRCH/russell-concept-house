@@ -37,7 +37,7 @@
           /* Ensure fonts are loaded before showing content */
           .articles-page {
             min-height: 100vh;
-            background: #fafafa;
+            background: #fbfbfa;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             --articles-grid-offset: 0;
@@ -285,7 +285,7 @@
               top: 0;
               bottom: 0;
               width: 2rem;
-              background: linear-gradient(to left, #fafafa, transparent);
+              background: linear-gradient(to left, #fbfbfa, transparent);
               pointer-events: none;
               z-index: 10;
             }

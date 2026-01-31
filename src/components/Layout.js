@@ -41,8 +41,8 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
   const navClasses = isDarkPage
     ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header'
     : isHomePage
-    ? `fixed top-0 left-0 right-0 z-50 bg-seasalt/70 backdrop-blur-sm transition-[background-color,backdrop-filter,box-shadow] duration-900 ease-out mobile-nav-header ${
-        scrolled ? 'bg-seasalt/90 shadow-sm scrolled' : ''
+    ? `fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,box-shadow] duration-900 ease-out mobile-nav-header ${
+        scrolled ? 'shadow-sm scrolled' : ''
       }`
     : isArticlesPage
     ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
@@ -195,19 +195,19 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
         }
         
         /* Mobile Menu */
-        .mobile-menu {
-          position: fixed;
-          top: 0;
-          right: -100%;
-          width: 80%;
-          max-width: 350px;
-          height: 100%;
-          background: #fafafa;
-          z-index: 999;
-          transition: right 0.3s ease;
-          overflow-y: auto;
-          box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1);
-        }
+          .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 350px;
+            height: 100%;
+            background: #fbfbfa;
+            z-index: 999;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1);
+          }
         
         .mobile-menu.dark {
           background: #2d2b29;
@@ -287,19 +287,21 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
 
           /* Home page nav keeps frosted background on mobile */
           .home-page-nav {
-            background-color: rgba(255, 255, 255, 0.7) !important;
+            background-color: #fbfbfa !important;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
           }
 
           .home-page-nav.scrolled {
-            background-color: rgba(255, 255, 255, 0.9) !important;
             box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
           }
         }
       `}</style>
       {!isDetailPage && (
-        <header className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isHomePage ? 'home-page-nav' : ''}`}>
+        <header
+          className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isHomePage ? 'home-page-nav' : ''}`}
+          style={isHomePage || isArticlesPage ? { backgroundColor: '#fbfbfa' } : undefined}
+        >
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">
               <Link href="/" className="logo-wrapper">
@@ -423,7 +425,10 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
       </main>
       
       {!isHomePage && (
-        <footer className={`border-t mt-24 ${isDarkPage ? 'bg-[#2d2b29] border-white/10' : 'border-silver'}`}>
+        <footer
+          className={`border-t mt-24 ${isDarkPage ? 'bg-[#2d2b29] border-white/10' : 'border-silver'}`}
+          style={isArticlesPage ? { backgroundColor: '#fbfbfa' } : undefined}
+        >
           <div className="container-custom py-12">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className={`text-sm mb-4 md:mb-0 ${isDarkPage ? 'text-white/60' : 'text-dim-gray'}`}>

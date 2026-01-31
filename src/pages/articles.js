@@ -160,7 +160,7 @@ export default function ArticlesPage({ articles }) {
       <div 
         ref={pageRef}
         className={`articles-page ${isLoaded ? '' : 'no-transitions'}`}
-        style={{ minHeight: '100vh', background: '#fafafa' }}
+        style={{ minHeight: '100vh', background: '#fbfbfa' }}
       >
         <div className="articles-wrapper" style={{ minHeight: '100vh', position: 'relative' }}>
             <div className="articles-hover-bg" aria-hidden="true" ref={hoverPrimaryRef}></div>
