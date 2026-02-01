@@ -3,10 +3,102 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
+function normalizeDimensions(value) {
+  if (!value) return null
+  const width = Number(value.width)
+  const height = Number(value.height)
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+  if (width <= 0 || height <= 0) return null
+  return { width, height }
+}
+
+function getDimensionSource(article) {
+  return normalizeDimensions(article.mainImageDimensions)
+    || normalizeDimensions(article.mainImage?.asset?.metadata?.dimensions)
+    || null
+}
+
+async function enrichArticlesWithCloudinaryDimensions(articles) {
+  if (!Array.isArray(articles) || articles.length === 0) return articles
+
+  const candidates = articles.filter((article) => (
+    article?.mainImagePublicId && !getDimensionSource(article)
+  ))
+
+  if (!candidates.length) return articles
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.warn('Cloudinary API credentials are missing; skipping dimension enrichment.')
+    return articles
+  }
+
+  const { v2: cloudinary } = await import('cloudinary')
+  cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret })
+
+  const uniqueIds = Array.from(new Set(candidates.map((article) => article.mainImagePublicId)))
+  const results = new Map()
+
+  let cursor = 0
+  const concurrency = Math.min(4, uniqueIds.length)
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (cursor < uniqueIds.length) {
+      const index = cursor++
+      const publicId = uniqueIds[index]
+      try {
+        const resource = await cloudinary.api.resource(publicId, { resource_type: 'image' })
+        const dims = normalizeDimensions(resource)
+        if (dims) {
+          results.set(publicId, dims)
+        }
+      } catch (error) {
+        console.warn(`Cloudinary dimension fetch failed for ${publicId}: ${error.message}`)
+      }
+    }
+  })
+
+  await Promise.all(workers)
+
+  if (results.size === 0) return articles
+
+  const enriched = articles.map((article) => {
+    const dims = results.get(article.mainImagePublicId)
+    return dims ? { ...article, mainImageDimensions: dims } : article
+  })
+
+  if (process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_TOKEN) {
+    try {
+      const { requireWriteClient } = await import('../lib/sanity.server')
+      const writeClient = requireWriteClient()
+      const patches = []
+      enriched.forEach((article) => {
+        const dims = results.get(article.mainImagePublicId)
+        if (!dims || !article?._id || article._id.startsWith('drafts.')) return
+        patches.push(
+          writeClient
+            .patch(article._id)
+            .set({ mainImageDimensions: dims })
+            .commit()
+        )
+      })
+      if (patches.length) {
+        await Promise.all(patches)
+      }
+    } catch (error) {
+      console.warn(`Skipping Sanity write-back: ${error.message}`)
+    }
+  }
+
+  return enriched
+}
+
 function buildImageDimensions(articles) {
   const dimensions = {}
   articles.forEach((article) => {
-    const sourceDimensions = article.mainImageDimensions || article.mainImage?.asset?.metadata?.dimensions
+    const sourceDimensions = getDimensionSource(article)
     const width = Number(sourceDimensions?.width)
     const height = Number(sourceDimensions?.height)
     if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
@@ -408,10 +500,11 @@ export default function Home({ articles }) {
 export async function getStaticProps() {
   try {
     const articles = await getArticles()
+    const enrichedArticles = await enrichArticlesWithCloudinaryDimensions(articles || [])
     
     return {
       props: {
-        articles: articles || []
+        articles: enrichedArticles || []
       },
       revalidate: 60
     }
