@@ -3,6 +3,82 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
+function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages }) {
+  const mainImageSource = article.mainImagePublicId || article.mainImage
+  const hasImage = Boolean(mainImageSource)
+  const imageData = loadedImages[article._id]
+  const aspectRatio = imageData?.aspectRatio || 1.5
+
+  return (
+    <Link
+      href={`/articles/${article.slug.current}`}
+      className="relative overflow-hidden group cursor-pointer animate-fadeIn home-card"
+    >
+      <div
+        className="relative w-full"
+        style={{
+          paddingBottom: `${aspectRatio * 100}%`
+        }}
+      >
+        {hasImage ? (
+          <>
+            <img
+              src={urlFor(mainImageSource)
+                .width(800)
+                .quality(85)
+                .url()}
+              alt={article.title}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              loading="lazy"
+              onLoad={(event) => {
+                const { naturalWidth, naturalHeight } = event.currentTarget
+                if (!naturalWidth || !naturalHeight) return
+                setLoadedImages(prev => {
+                  const existing = prev[article._id]
+                  if (existing) {
+                    return prev
+                  }
+                  return {
+                    ...prev,
+                    [article._id]: {
+                      width: naturalWidth,
+                      height: naturalHeight,
+                      aspectRatio: naturalHeight / naturalWidth
+                    }
+                  }
+                })
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-gradient"></div>
+          </>
+        ) : (
+          <div className={`absolute inset-0 bg-gradient-to-br ${
+            index % 5 === 0 ? 'from-zinc-900 to-zinc-700' :
+            index % 5 === 1 ? 'from-stone-800 to-amber-900' :
+            index % 5 === 2 ? 'from-emerald-900 to-emerald-700' :
+            index % 5 === 3 ? 'from-indigo-950 to-indigo-800' :
+            'from-neutral-900 to-neutral-600'
+          } transition-transform duration-700 group-hover:scale-[1.02]`}></div>
+        )}
+
+        <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 lg:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-overlay">
+          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 home-card-overlay-content">
+            <p className="text-white/90 text-xs tracking-widest mb-2">
+              {article.category?.toUpperCase() || 'ARTICLE'} • {formatDate(article.publishedAt)}
+            </p>
+            <h3 className="text-white text-lg sm:text-xl lg:text-2xl font-serif font-light tracking-wide mb-2">
+              {article.title}
+            </h3>
+            <p className="text-white/80 text-sm line-clamp-2">
+              {article.excerpt}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 function normalizeDimensions(value) {
   if (!value) return null
   const width = Number(value.width)
@@ -115,13 +191,6 @@ function buildImageDimensions(articles) {
 export default function Home({ articles }) {
   const [loadedImages, setLoadedImages] = useState(() => buildImageDimensions(articles))
   const [isMobileView, setIsMobileView] = useState(false)
-  const [columnCount, setColumnCount] = useState(() => {
-    if (typeof window === 'undefined') return 3
-    const width = window.innerWidth
-    if (width < 640) return 1
-    if (width < 1024) return 2
-    return 3
-  })
   const [hasScrolled, setHasScrolled] = useState(false)
   const [hasHydrated, setHasHydrated] = useState(false)
   const mobileCardRefs = useRef(new Map())
@@ -167,12 +236,12 @@ export default function Home({ articles }) {
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
+    const header = document.querySelector('.mobile-nav-header')
+    if (!header) return
 
     let frame = null
     const updateOffset = () => {
       frame = null
-      const header = document.querySelector('.mobile-nav-header')
-      if (!header) return
       const height = header.getBoundingClientRect().height
       if (!height || Math.abs(headerOffsetRef.current - height) < 1) return
       headerOffsetRef.current = height
@@ -185,6 +254,13 @@ export default function Home({ articles }) {
     }
 
     updateOffset()
+
+    let observer = null
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(handleUpdate)
+      observer.observe(header)
+    }
+
     window.addEventListener('resize', handleUpdate)
     window.addEventListener('orientationchange', handleUpdate)
     window.addEventListener('load', handleUpdate)
@@ -193,6 +269,7 @@ export default function Home({ articles }) {
       window.removeEventListener('resize', handleUpdate)
       window.removeEventListener('orientationchange', handleUpdate)
       window.removeEventListener('load', handleUpdate)
+      if (observer) observer.disconnect()
       if (frame !== null) {
         window.cancelAnimationFrame(frame)
       }
@@ -204,8 +281,6 @@ export default function Home({ articles }) {
     if (!hasHydrated) return
     const updateColumnCount = () => {
       const width = window.innerWidth
-      const nextCount = width < 640 ? 1 : width < 1024 ? 2 : 3
-      setColumnCount(prev => (prev === nextCount ? prev : nextCount))
       const nextIsMobile = width < 640
       setIsMobileView(prev => (prev === nextIsMobile ? prev : nextIsMobile))
     }
@@ -261,16 +336,14 @@ export default function Home({ articles }) {
   }, [isMobileView])
 
   // Distribute articles into columns using a balanced approach
-  const distributeArticles = () => {
-    const columns = Array.from({ length: columnCount }, () => [])
-    const columnHeights = new Array(columnCount).fill(0)
+  const distributeArticlesForCount = (count) => {
+    const columns = Array.from({ length: count }, () => [])
+    const columnHeights = new Array(count).fill(0)
     
     articles.forEach((article) => {
-      // Find the shortest column
       const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
       columns[shortestColumnIndex].push(article)
       
-      // Update column height (estimate based on aspect ratio or default)
       const imageData = loadedImages[article._id]
       const estimatedHeight = imageData ? imageData.aspectRatio * 300 : 400
       columnHeights[shortestColumnIndex] += estimatedHeight
@@ -285,7 +358,8 @@ export default function Home({ articles }) {
     return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
-  const columns = hasHydrated ? distributeArticles() : [articles]
+  const columns = distributeArticlesForCount(3)
+  const columnsTwo = distributeArticlesForCount(2)
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'Russell Concept House | Curated Objects & Lighting'
@@ -356,7 +430,7 @@ export default function Home({ articles }) {
                           if (!naturalWidth || !naturalHeight) return
                           setLoadedImages(prev => {
                             const existing = prev[article._id]
-                            if (existing && existing.width === naturalWidth && existing.height === naturalHeight) {
+                            if (existing) {
                               return prev
                             }
                             return {
@@ -401,85 +475,36 @@ export default function Home({ articles }) {
           })}
         </div>
 
-        <div className="hidden sm:flex gap-1">
+        <div className="hidden sm:flex lg:hidden gap-1">
+          {columnsTwo.map((column, columnIndex) => (
+            <div key={columnIndex} className="flex-1 flex flex-col gap-1">
+              {column.map((article, index) => (
+                <HomeCard
+                  key={article._id}
+                  article={article}
+                  index={index}
+                  formatDate={formatDate}
+                  loadedImages={loadedImages}
+                  setLoadedImages={setLoadedImages}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden lg:flex gap-1">
           {columns.map((column, columnIndex) => (
             <div key={columnIndex} className="flex-1 flex flex-col gap-1">
-              {column.map((article, index) => {
-                const mainImageSource = article.mainImagePublicId || article.mainImage
-                const hasImage = Boolean(mainImageSource)
-                const imageData = loadedImages[article._id]
-                const aspectRatio = imageData?.aspectRatio || 1.5
-
-                return (
-                  <Link
-                    key={article._id}
-                    href={`/articles/${article.slug.current}`}
-                    className="relative overflow-hidden group cursor-pointer animate-fadeIn home-card"
-                  >
-                    <div
-                      className="relative w-full"
-                      style={{
-                        paddingBottom: `${aspectRatio * 100}%`
-                      }}
-                    >
-                      {hasImage ? (
-                        <>
-                          <img
-                            src={urlFor(mainImageSource)
-                              .width(800)
-                              .quality(85)
-                              .url()}
-                            alt={article.title}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                            loading="lazy"
-                            onLoad={(event) => {
-                              const { naturalWidth, naturalHeight } = event.currentTarget
-                              if (!naturalWidth || !naturalHeight) return
-                              setLoadedImages(prev => {
-                                const existing = prev[article._id]
-                                if (existing && existing.width === naturalWidth && existing.height === naturalHeight) {
-                                  return prev
-                                }
-                                return {
-                                  ...prev,
-                                  [article._id]: {
-                                    width: naturalWidth,
-                                    height: naturalHeight,
-                                    aspectRatio: naturalHeight / naturalWidth
-                                  }
-                                }
-                              })
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-gradient"></div>
-                        </>
-                      ) : (
-                        <div className={`absolute inset-0 bg-gradient-to-br ${
-                          index % 5 === 0 ? 'from-zinc-900 to-zinc-700' :
-                          index % 5 === 1 ? 'from-stone-800 to-amber-900' :
-                          index % 5 === 2 ? 'from-emerald-900 to-emerald-700' :
-                          index % 5 === 3 ? 'from-indigo-950 to-indigo-800' :
-                          'from-neutral-900 to-neutral-600'
-                        } transition-transform duration-700 group-hover:scale-[1.02]`}></div>
-                      )}
-
-                      <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-5 lg:p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 home-card-overlay">
-                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 home-card-overlay-content">
-                          <p className="text-white/90 text-xs tracking-widest mb-2">
-                            {article.category?.toUpperCase() || 'ARTICLE'} • {formatDate(article.publishedAt)}
-                          </p>
-                          <h3 className="text-white text-lg sm:text-xl lg:text-2xl font-serif font-light tracking-wide mb-2">
-                            {article.title}
-                          </h3>
-                          <p className="text-white/80 text-sm line-clamp-2">
-                            {article.excerpt}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
+              {column.map((article, index) => (
+                <HomeCard
+                  key={article._id}
+                  article={article}
+                  index={index}
+                  formatDate={formatDate}
+                  loadedImages={loadedImages}
+                  setLoadedImages={setLoadedImages}
+                />
+              ))}
             </div>
           ))}
         </div>
