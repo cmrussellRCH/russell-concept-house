@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Layout({ children, hideHeader = false, isVideoProfile = false, isDetailPage = false, isDarkPage: isDarkPageProp = false, isHomePage: isHomePageProp = false }) {
   const router = useRouter()
@@ -12,14 +12,53 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
   const isDarkPage = isDarkPageProp || isConversationsPage || isVideoProfile
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const headerRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
+      const threshold = isHomePage ? 0 : 50
+      setScrolled(window.scrollY > threshold)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, [isHomePage])
+
+  useEffect(() => {
+    if (!isHomePage || isDetailPage) return
+    let frame = null
+    const maxScroll = 160
+    const maxOpacity = 0.92
+    const maxBlur = 10
+
+    const update = () => {
+      frame = null
+      const scrollY = window.scrollY || 0
+      const progress = Math.min(scrollY / maxScroll, 1)
+      const opacity = (progress * maxOpacity).toFixed(3)
+      const blur = (progress * maxBlur).toFixed(2)
+      if (headerRef.current) {
+        headerRef.current.style.setProperty('--home-nav-opacity', opacity)
+        headerRef.current.style.setProperty('--home-nav-blur', `${blur}px`)
+      }
+    }
+
+    const handleScroll = () => {
+      if (frame !== null) return
+      frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame)
+      }
+    }
+  }, [isHomePage, isDetailPage])
 
   // Ensure mobile menu is closed on route change
   useEffect(() => {
@@ -43,7 +82,7 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
     ? 'fixed top-0 left-0 right-0 z-50 bg-[#2d2b29]/95 backdrop-blur-sm shadow-sm transition-[background-color,backdrop-filter,box-shadow] duration-600 ease-in-out mobile-nav-header'
     : isHomePage
     ? `fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,box-shadow] duration-900 ease-out mobile-nav-header ${
-        scrolled ? 'shadow-sm scrolled' : ''
+        scrolled ? 'scrolled' : ''
       }`
     : isArticlesPage
     ? `fixed top-0 left-0 right-0 z-50 transition-opacity duration-600 ease-in-out mobile-nav-header ${
@@ -252,6 +291,14 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
           opacity: 0.5;
         }
         
+        /* Home page nav: transparent until scroll, then soft glass */
+        .home-page-nav {
+          background-color: rgba(251, 251, 250, var(--home-nav-opacity, 0));
+          backdrop-filter: blur(var(--home-nav-blur, 0px));
+          -webkit-backdrop-filter: blur(var(--home-nav-blur, 0px));
+          box-shadow: none;
+        }
+
         /* Mobile navigation styles */
         @media (max-width: 1023px) {
           nav {
@@ -286,22 +333,19 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
             box-shadow: none;
           }
 
-          /* Home page nav keeps frosted background on mobile */
+          /* Home page nav uses the same transparent-to-glass transition on mobile */
           .home-page-nav {
-            background-color: #fbfbfa !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-          }
-
-          .home-page-nav.scrolled {
-            box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+            background-color: rgba(251, 251, 250, var(--home-nav-opacity, 0)) !important;
+            backdrop-filter: blur(var(--home-nav-blur, 0px)) !important;
+            -webkit-backdrop-filter: blur(var(--home-nav-blur, 0px)) !important;
+            box-shadow: none !important;
           }
         }
       `}</style>
       {!isDetailPage && (
         <header
+          ref={headerRef}
           className={`${navClasses} ${isDarkPage ? 'dark-page' : ''} ${isArticlesPage ? 'articles-page-nav' : ''} ${isHomePage ? 'home-page-nav' : ''}`}
-          style={isHomePage ? { backgroundColor: '#fbfbfa' } : undefined}
         >
           <nav className="w-full px-8 lg:px-16 py-6">
             <div className="flex items-center justify-between">

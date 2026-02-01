@@ -257,6 +257,7 @@ export async function getServerSideProps({ req, query }) {
       publishedAt,
       _updatedAt,
       mainImagePublicId,
+      mainImageDimensions,
       mainImage { asset-> { _id, url } }
     }`
   )
@@ -285,6 +286,7 @@ export async function getServerSideProps({ req, query }) {
         videoUrl,
         videoDuration,
         tags,
+        mainImageDimensions,
         galleryPublicIds,
         gallery[] { asset-> { url } }
       }`,

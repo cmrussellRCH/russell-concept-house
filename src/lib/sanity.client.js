@@ -93,6 +93,7 @@ export async function getArticles(limit = null) {
         author,
         mediaType,
         mainImagePublicId,
+        mainImageDimensions,
         mainImage {
           asset-> {
             _id,
@@ -113,6 +114,7 @@ export async function getArticles(limit = null) {
         author,
         mediaType,
         mainImagePublicId,
+        mainImageDimensions,
         mainImage {
           asset-> {
             _id,
@@ -140,6 +142,7 @@ export async function getArticleBySlug(slug) {
       name
     },
     mainImagePublicId,
+    mainImageDimensions,
     galleryPublicIds,
     availableAtLabel,
     availableAtUrl,
