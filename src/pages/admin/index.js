@@ -185,7 +185,7 @@ export default function AdminDashboard({ articles, selectedArticle, selectedId, 
                       <span className="admin-badge">{categoryLabel}</span>
                       {article.mediaType && <span className="admin-badge">{article.mediaType}</span>}
                       {article.publishedAt && (
-                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                        <span>{new Date(article.publishedAt).toLocaleDateString('en-US')}</span>
                       )}
                     </div>
                   </div>
