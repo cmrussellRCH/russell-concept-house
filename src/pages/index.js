@@ -34,6 +34,7 @@ export default function Home({ articles }) {
   const mobileCardRefs = useRef(new Map())
   const visibleCardsRef = useRef(new Set())
   const containerRef = useRef(null)
+  const headerOffsetRef = useRef(0)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,6 +66,41 @@ export default function Home({ articles }) {
     handleScroll() // Initial check
     return () => window.removeEventListener('scroll', handleScroll)
   }, [hasScrolled, isMobileView])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    let frame = null
+    const updateOffset = () => {
+      frame = null
+      const header = document.querySelector('.mobile-nav-header')
+      if (!header) return
+      const height = header.getBoundingClientRect().height
+      if (!height || Math.abs(headerOffsetRef.current - height) < 1) return
+      headerOffsetRef.current = height
+      container.style.setProperty('--home-header-offset', `${height}px`)
+    }
+
+    const handleUpdate = () => {
+      if (frame !== null) return
+      frame = window.requestAnimationFrame(updateOffset)
+    }
+
+    updateOffset()
+    window.addEventListener('resize', handleUpdate)
+    window.addEventListener('orientationchange', handleUpdate)
+    window.addEventListener('load', handleUpdate)
+
+    return () => {
+      window.removeEventListener('resize', handleUpdate)
+      window.removeEventListener('orientationchange', handleUpdate)
+      window.removeEventListener('load', handleUpdate)
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame)
+      }
+    }
+  }, [])
 
   // Calculate column count based on screen width
   useEffect(() => {
@@ -176,7 +212,11 @@ export default function Home({ articles }) {
       </Head>
 
       {/* Masonry gallery grid */}
-      <div className="min-h-screen px-1 pb-1 pt-0 bg-gradient-to-b from-seasalt via-white to-platinum/20" ref={containerRef} style={{ marginTop: '80px' }}>
+      <div
+        className="min-h-screen px-1 pb-1 pt-0 bg-gradient-to-b from-seasalt via-white to-platinum/20"
+        ref={containerRef}
+        style={{ marginTop: 'var(--home-header-offset, 80px)' }}
+      >
         <div className="flex flex-col gap-1 sm:hidden">
           {articles.map((article, index) => {
             const mainImageSource = article.mainImagePublicId || article.mainImage
