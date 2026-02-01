@@ -41,6 +41,7 @@ export default function ArticleForm({
       categoryId: initialArticle?.categoryRef?._id || '',
       categoryLabel: initialArticle?.categoryRef?.title || '',
       mainImagePublicId: initialArticle?.mainImagePublicId || '',
+      mainImageDimensions: initialArticle?.mainImageDimensions || null,
       excerpt: initialArticle?.excerpt || '',
       publishedAt: publishedAt || toDateTimeLocal(),
       author: initialArticle?.author || 'Russell Concept House',
@@ -424,7 +425,14 @@ export default function ArticleForm({
               disabled={!canUpload}
               onClick={() => openUploadWidget({ multiple: false }, (info) => {
                 setClearMainImagePublicId(false)
-                setForm({ ...form, mainImagePublicId: info.public_id })
+                setForm({
+                  ...form,
+                  mainImagePublicId: info.public_id,
+                  mainImageDimensions: {
+                    width: info.width,
+                    height: info.height
+                  }
+                })
               })}
             >
               Upload main image
@@ -445,7 +453,7 @@ export default function ArticleForm({
                       aria-label="Remove main image"
                       onClick={() => {
                         setClearMainImagePublicId(true)
-                        setForm({ ...form, mainImagePublicId: '' })
+                        setForm({ ...form, mainImagePublicId: '', mainImageDimensions: null })
                       }}
                     >
                       <svg viewBox="0 0 24 24" aria-hidden="true">

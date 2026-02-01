@@ -58,6 +58,7 @@ export default async function handler(req, res) {
     videoDuration,
     tags,
     mainImagePublicId,
+    mainImageDimensions,
     galleryPublicIds,
     status
   } = req.body || {}
@@ -102,6 +103,7 @@ export default async function handler(req, res) {
   const normalizedAvailableAtLabel = availableAtLabel ? String(availableAtLabel).trim() : ''
   const normalizedVideoUrl = videoUrl ? String(videoUrl).trim() : ''
   const normalizedVideoDuration = videoDuration ? String(videoDuration).trim() : ''
+  const normalizedMainImageDimensions = normalizeImageDimensions(mainImageDimensions)
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
@@ -127,6 +129,7 @@ export default async function handler(req, res) {
       ? { _type: 'reference', _ref: resolvedCategory._id }
       : undefined,
     mainImagePublicId: mainImagePublicId ? String(mainImagePublicId).trim() : undefined,
+    mainImageDimensions: mainImagePublicId && normalizedMainImageDimensions ? normalizedMainImageDimensions : undefined,
     excerpt: excerpt ? String(excerpt).trim() : undefined,
     publishedAt: normalizedPublishedAt,
     author: author ? String(author).trim() : 'Russell Concept House',
@@ -175,4 +178,13 @@ async function revalidatePaths(res, slug, mediaType) {
   } catch (error) {
     console.error('Revalidation error:', error)
   }
+}
+
+function normalizeImageDimensions(value) {
+  if (!value) return null
+  const width = Number(value.width)
+  const height = Number(value.height)
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+  if (width <= 0 || height <= 0) return null
+  return { width, height }
 }

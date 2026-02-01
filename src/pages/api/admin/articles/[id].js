@@ -62,6 +62,7 @@ export default async function handler(req, res) {
     videoDuration,
     tags,
     mainImagePublicId,
+    mainImageDimensions,
     galleryPublicIds,
     clearMainImagePublicId,
     status
@@ -108,6 +109,7 @@ export default async function handler(req, res) {
   const normalizedAvailableAtLabel = availableAtLabel ? String(availableAtLabel).trim() : ''
   const normalizedVideoUrl = videoUrl ? String(videoUrl).trim() : ''
   const normalizedVideoDuration = videoDuration ? String(videoDuration).trim() : ''
+  const normalizedMainImageDimensions = normalizeImageDimensions(mainImageDimensions)
   const normalizedGallery = Array.isArray(galleryPublicIds)
     ? galleryPublicIds.map(id => String(id).trim()).filter(Boolean)
     : []
@@ -187,11 +189,15 @@ export default async function handler(req, res) {
   const patch = client.patch(targetId).set(patchPayload)
 
   if (clearMainImagePublicId) {
-    patch.unset(['mainImagePublicId'])
+    patch.unset(['mainImagePublicId', 'mainImageDimensions'])
   } else if (mainImagePublicId) {
-    patch.set({ mainImagePublicId: String(mainImagePublicId).trim() })
+    const nextMainImage = { mainImagePublicId: String(mainImagePublicId).trim() }
+    if (normalizedMainImageDimensions) {
+      nextMainImage.mainImageDimensions = normalizedMainImageDimensions
+    }
+    patch.set(nextMainImage)
   } else if (!isDraft) {
-    patch.unset(['mainImagePublicId'])
+    patch.unset(['mainImagePublicId', 'mainImageDimensions'])
   }
 
   if (!isDraft && resolvedMediaType !== 'video') {
@@ -229,4 +235,13 @@ async function revalidatePaths(res, slug, mediaType) {
   } catch (error) {
     console.error('Revalidation error:', error)
   }
+}
+
+function normalizeImageDimensions(value) {
+  if (!value) return null
+  const width = Number(value.width)
+  const height = Number(value.height)
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return null
+  if (width <= 0 || height <= 0) return null
+  return { width, height }
 }

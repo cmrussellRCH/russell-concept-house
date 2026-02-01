@@ -3,8 +3,25 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
+function buildImageDimensions(articles) {
+  const dimensions = {}
+  articles.forEach((article) => {
+    const sourceDimensions = article.mainImageDimensions || article.mainImage?.asset?.metadata?.dimensions
+    const width = Number(sourceDimensions?.width)
+    const height = Number(sourceDimensions?.height)
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+      dimensions[article._id] = {
+        width,
+        height,
+        aspectRatio: height / width
+      }
+    }
+  })
+  return dimensions
+}
+
 export default function Home({ articles }) {
-  const [loadedImages, setLoadedImages] = useState({})
+  const [loadedImages, setLoadedImages] = useState(() => buildImageDimensions(articles))
   const [isMobileView, setIsMobileView] = useState(false)
   const [columnCount, setColumnCount] = useState(() => {
     if (typeof window === 'undefined') return 3
@@ -63,22 +80,6 @@ export default function Home({ articles }) {
     window.addEventListener('resize', updateColumnCount)
     return () => window.removeEventListener('resize', updateColumnCount)
   }, [])
-
-  // Use intrinsic dimensions from Sanity metadata when available to avoid client-side preload measurements
-  useEffect(() => {
-    const dimensions = {}
-    articles.forEach((article) => {
-      const dims = article.mainImage?.asset?.metadata?.dimensions
-      if (dims?.width && dims?.height) {
-        dimensions[article._id] = {
-          width: dims.width,
-          height: dims.height,
-          aspectRatio: dims.height / dims.width
-        }
-      }
-    })
-    setLoadedImages(dimensions)
-  }, [articles])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -175,7 +176,7 @@ export default function Home({ articles }) {
       </Head>
 
       {/* Masonry gallery grid */}
-      <div className="min-h-screen p-1 bg-gradient-to-b from-seasalt via-white to-platinum/20" ref={containerRef} style={{ marginTop: '80px' }}>
+      <div className="min-h-screen px-1 pb-1 pt-0 bg-gradient-to-b from-seasalt via-white to-platinum/20" ref={containerRef} style={{ marginTop: '80px' }}>
         <div className="flex flex-col gap-1 sm:hidden">
           {articles.map((article, index) => {
             const mainImageSource = article.mainImagePublicId || article.mainImage

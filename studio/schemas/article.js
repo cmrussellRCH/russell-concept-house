@@ -60,6 +60,18 @@ export default {
       })
     },
     {
+      name: 'mainImageDimensions',
+      title: 'Main Image Dimensions',
+      type: 'object',
+      readOnly: true,
+      hidden: true,
+      fields: [
+        { name: 'width', title: 'Width', type: 'number' },
+        { name: 'height', title: 'Height', type: 'number' }
+      ],
+      description: 'Auto-captured from Cloudinary uploads.'
+    },
+    {
       name: 'excerpt',
       title: 'Excerpt',
       type: 'text',
