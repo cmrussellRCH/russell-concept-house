@@ -38,7 +38,7 @@ export default function ArticlePage({ article }) {
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+    return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
   const calculateReadTime = (content) => {

@@ -31,10 +31,15 @@ export default function Home({ articles }) {
     return 3
   })
   const [hasScrolled, setHasScrolled] = useState(false)
+  const [hasHydrated, setHasHydrated] = useState(false)
   const mobileCardRefs = useRef(new Map())
   const visibleCardsRef = useRef(new Set())
   const containerRef = useRef(null)
   const headerOffsetRef = useRef(0)
+
+  useEffect(() => {
+    setHasHydrated(true)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,6 +109,7 @@ export default function Home({ articles }) {
 
   // Calculate column count based on screen width
   useEffect(() => {
+    if (!hasHydrated) return
     const updateColumnCount = () => {
       const width = window.innerWidth
       const nextCount = width < 640 ? 1 : width < 1024 ? 2 : 3
@@ -115,7 +121,7 @@ export default function Home({ articles }) {
     updateColumnCount()
     window.addEventListener('resize', updateColumnCount)
     return () => window.removeEventListener('resize', updateColumnCount)
-  }, [])
+  }, [hasHydrated])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -184,10 +190,10 @@ export default function Home({ articles }) {
   // Format date
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+    return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
-  const columns = distributeArticles()
+  const columns = hasHydrated ? distributeArticles() : [articles]
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'Russell Concept House | Curated Objects & Lighting'

@@ -121,7 +121,7 @@ export default function ArticlesPage({ articles }) {
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+    return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
   // Format title with weight variation and smaller "by"
