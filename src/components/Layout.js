@@ -95,12 +95,12 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
     <div className={`min-h-screen flex flex-col ${isDarkPage ? 'bg-[#2d2b29]' : 'bg-seasalt'}`}>
       <style jsx>{`
         :global(:root) {
-          --home-header-offset: 88px;
+          --home-header-offset: 80px;
         }
 
         @media (max-width: 1023px) {
           :global(:root) {
-            --home-header-offset: 72px;
+            --home-header-offset: 64px;
           }
         }
 
@@ -307,7 +307,7 @@ export default function Layout({ children, hideHeader = false, isVideoProfile = 
           backdrop-filter: blur(var(--home-nav-blur, 0px));
           -webkit-backdrop-filter: blur(var(--home-nav-blur, 0px));
           box-shadow: none;
-          height: var(--home-header-offset);
+          min-height: var(--home-header-offset);
         }
 
         /* Mobile navigation styles */
