@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
 function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages }) {
@@ -94,11 +94,39 @@ function getDimensionSource(article) {
     || null
 }
 
+function getImageProbeUrl(article) {
+  const mainImageSource = article?.mainImagePublicId || article?.mainImage
+  if (!mainImageSource) return null
+  return urlFor(mainImageSource)
+    .width(480)
+    .quality(50)
+    .url()
+}
+
+async function fetchImageDimensionsFromUrl(imageUrl) {
+  if (!imageUrl) return null
+  try {
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      console.warn(`Image probe request failed (${response.status})`)
+      return null
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) return null
+    const { default: sharp } = await import('sharp')
+    const metadata = await sharp(Buffer.from(arrayBuffer)).metadata()
+    return normalizeDimensions(metadata)
+  } catch (error) {
+    console.warn(`Image probe failed: ${error.message}`)
+    return null
+  }
+}
+
 async function enrichArticlesWithCloudinaryDimensions(articles) {
   if (!Array.isArray(articles) || articles.length === 0) return articles
 
   const candidates = articles.filter((article) => (
-    article?.mainImagePublicId && !getDimensionSource(article)
+    !getDimensionSource(article) && (article?.mainImagePublicId || article?.mainImage)
   ))
 
   if (!candidates.length) return articles
@@ -107,51 +135,81 @@ async function enrichArticlesWithCloudinaryDimensions(articles) {
   const apiKey = process.env.CLOUDINARY_API_KEY
   const apiSecret = process.env.CLOUDINARY_API_SECRET
 
-  if (!cloudName || !apiKey || !apiSecret) {
-    console.warn('Cloudinary API credentials are missing; skipping dimension enrichment.')
-    return articles
+  const resultsByPublicId = new Map()
+  const resultsByArticleId = new Map()
+
+  if (cloudName && apiKey && apiSecret) {
+    const { v2: cloudinary } = await import('cloudinary')
+    cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret })
+
+    const uniqueIds = Array.from(new Set(
+      candidates
+        .map((article) => article.mainImagePublicId)
+        .filter(Boolean)
+    ))
+
+    let cursor = 0
+    const concurrency = Math.min(4, uniqueIds.length)
+    const workers = Array.from({ length: concurrency }, async () => {
+      while (cursor < uniqueIds.length) {
+        const index = cursor++
+        const publicId = uniqueIds[index]
+        try {
+          const resource = await cloudinary.api.resource(publicId, { resource_type: 'image' })
+          const dims = normalizeDimensions(resource)
+          if (dims) {
+            resultsByPublicId.set(publicId, dims)
+          }
+        } catch (error) {
+          console.warn(`Cloudinary dimension fetch failed for ${publicId}: ${error.message}`)
+        }
+      }
+    })
+
+    await Promise.all(workers)
   }
 
-  const { v2: cloudinary } = await import('cloudinary')
-  cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret })
-
-  const uniqueIds = Array.from(new Set(candidates.map((article) => article.mainImagePublicId)))
-  const results = new Map()
-
-  let cursor = 0
-  const concurrency = Math.min(4, uniqueIds.length)
-  const workers = Array.from({ length: concurrency }, async () => {
-    while (cursor < uniqueIds.length) {
-      const index = cursor++
-      const publicId = uniqueIds[index]
-      try {
-        const resource = await cloudinary.api.resource(publicId, { resource_type: 'image' })
-        const dims = normalizeDimensions(resource)
-        if (dims) {
-          results.set(publicId, dims)
-        }
-      } catch (error) {
-        console.warn(`Cloudinary dimension fetch failed for ${publicId}: ${error.message}`)
-      }
+  const remaining = candidates.filter((article) => {
+    if (!article) return false
+    if (article.mainImagePublicId && resultsByPublicId.has(article.mainImagePublicId)) {
+      return false
     }
+    return true
   })
 
-  await Promise.all(workers)
+  if (remaining.length) {
+    let cursor = 0
+    const concurrency = Math.min(4, remaining.length)
+    const workers = Array.from({ length: concurrency }, async () => {
+      while (cursor < remaining.length) {
+        const index = cursor++
+        const article = remaining[index]
+        const imageUrl = getImageProbeUrl(article)
+        if (!imageUrl) continue
+        const dims = await fetchImageDimensionsFromUrl(imageUrl)
+        if (dims) {
+          resultsByArticleId.set(article._id, dims)
+        }
+      }
+    })
 
-  if (results.size === 0) return articles
+    await Promise.all(workers)
+  }
 
   const enriched = articles.map((article) => {
-    const dims = results.get(article.mainImagePublicId)
+    const dims = resultsByPublicId.get(article.mainImagePublicId)
+      || resultsByArticleId.get(article._id)
     return dims ? { ...article, mainImageDimensions: dims } : article
   })
 
-  if (process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_TOKEN) {
+  if ((resultsByPublicId.size > 0 || resultsByArticleId.size > 0) && (process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_TOKEN)) {
     try {
       const { requireWriteClient } = await import('../lib/sanity.server')
       const writeClient = requireWriteClient()
       const patches = []
       enriched.forEach((article) => {
-        const dims = results.get(article.mainImagePublicId)
+        const dims = resultsByPublicId.get(article.mainImagePublicId)
+          || resultsByArticleId.get(article._id)
         if (!dims || !article?._id || article._id.startsWith('drafts.')) return
         patches.push(
           writeClient
@@ -344,8 +402,10 @@ export default function Home({ articles }) {
       const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights))
       columns[shortestColumnIndex].push(article)
       
-      const imageData = loadedImages[article._id]
-      const estimatedHeight = imageData ? imageData.aspectRatio * 300 : 400
+      const sourceDimensions = getDimensionSource(article)
+      const estimatedHeight = sourceDimensions
+        ? (sourceDimensions.height / sourceDimensions.width) * 300
+        : 400
       columnHeights[shortestColumnIndex] += estimatedHeight
     })
     
@@ -358,8 +418,8 @@ export default function Home({ articles }) {
     return new Date(dateString).toLocaleDateString('en-US', options)
   }
 
-  const columns = distributeArticlesForCount(3)
-  const columnsTwo = distributeArticlesForCount(2)
+  const columns = useMemo(() => distributeArticlesForCount(3), [articles])
+  const columnsTwo = useMemo(() => distributeArticlesForCount(2), [articles])
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'Russell Concept House | Curated Objects & Lighting'
