@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { getArticles, urlFor } from '../lib/sanity.client'
 
-function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages }) {
+function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages, isEager }) {
   const mainImageSource = article.mainImagePublicId || article.mainImage
   const hasImage = Boolean(mainImageSource)
   const imageData = loadedImages[article._id]
@@ -12,7 +12,7 @@ function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages })
   return (
     <Link
       href={`/articles/${article.slug.current}`}
-      className="relative overflow-hidden group cursor-pointer animate-fadeIn home-card"
+      className="relative overflow-hidden group cursor-pointer home-card"
     >
       <div
         className="relative w-full"
@@ -29,7 +29,8 @@ function HomeCard({ article, index, formatDate, loadedImages, setLoadedImages })
                 .url()}
               alt={article.title}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-              loading="lazy"
+              loading={isEager ? 'eager' : 'lazy'}
+              fetchPriority={isEager ? 'high' : 'auto'}
               onLoad={(event) => {
                 const { naturalWidth, naturalHeight } = event.currentTarget
                 if (!naturalWidth || !naturalHeight) return
@@ -420,6 +421,10 @@ export default function Home({ articles }) {
 
   const columns = useMemo(() => distributeArticlesForCount(3), [articles])
   const columnsTwo = useMemo(() => distributeArticlesForCount(2), [articles])
+  const eagerImageIds = useMemo(
+    () => new Set(articles.slice(0, 6).map((article) => article._id)),
+    [articles]
+  )
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.russellconcept.com'
   const pageTitle = 'Russell Concept House | Curated Objects & Lighting'
@@ -456,11 +461,13 @@ export default function Home({ articles }) {
             const imageData = loadedImages[article._id]
             const aspectRatio = imageData?.aspectRatio || 1.5
 
+            const isEager = eagerImageIds.has(article._id)
+
             return (
               <Link
                 key={article._id}
                 href={`/articles/${article.slug.current}`}
-                className="relative overflow-hidden group cursor-pointer animate-fadeIn home-card"
+                className="relative overflow-hidden group cursor-pointer home-card"
                 ref={(node) => {
                   if (node) {
                     mobileCardRefs.current.set(article._id, node)
@@ -484,7 +491,8 @@ export default function Home({ articles }) {
                           .url()}
                         alt={article.title}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        loading="lazy"
+                        loading={isEager ? 'eager' : 'lazy'}
+                        fetchPriority={isEager ? 'high' : 'auto'}
                         onLoad={(event) => {
                           const { naturalWidth, naturalHeight } = event.currentTarget
                           if (!naturalWidth || !naturalHeight) return
@@ -546,6 +554,7 @@ export default function Home({ articles }) {
                   formatDate={formatDate}
                   loadedImages={loadedImages}
                   setLoadedImages={setLoadedImages}
+                  isEager={eagerImageIds.has(article._id)}
                 />
               ))}
             </div>
@@ -563,6 +572,7 @@ export default function Home({ articles }) {
                   formatDate={formatDate}
                   loadedImages={loadedImages}
                   setLoadedImages={setLoadedImages}
+                  isEager={eagerImageIds.has(article._id)}
                 />
               ))}
             </div>
